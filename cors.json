@@ -1,0 +1,19 @@
+[
+  {
+    "origin": [
+      "http://127.0.0.1:5000",
+      "http://localhost:5000",
+      "https://project-sharesheet2.web.app"
+    ],
+    "method": ["GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"],
+    "responseHeader": [
+      "Content-Type",
+      "Authorization",
+      "x-goog-meta-*",
+      "x-goog-resumable",
+      "x-goog-content-length-range",
+      "x-goog-storage-class"
+    ],
+    "maxAgeSeconds": 3600
+  }
+]

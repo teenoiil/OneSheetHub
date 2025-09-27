@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>โปรไฟล์ | OneSheetHub</title>
+  <link rel="stylesheet" href="../css/profile.css">
+  <style>
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <img src="../pic/placeholder.png" alt="OneSheetHub Logo" height="40">
+      <span>OneSheet<br>Hub</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="home.html">หน้าแรก</a></li>
+      <li><a href="viewsheet.html">ซื้อชีท</a></li>
+      <li><a href="upload.html">ขายชีท</a></li>
+      <li><a href="mysheet.html">ชีทฉัน</a></li>
+      <li><a href="myprofile.html" class="active">โปรไฟล์</a></li>
+    </ul>
+    <div class="user-info">
+      <div id="emailCard" style="display:inline-flex;align-items:center;gap:4px;width:64px;min-height:32px;transition:gap 0.3s, width 0.3s;position:relative;justify-content:center;background:#dac7f7;border-radius:16px;padding:4px 8px;overflow:hidden;">
+        <span class="icon" id="bellIcon" style="font-size:20px;transition:opacity 0.3s;">&#128276;</span>
+        <span class="icon" id="userIcon" style="font-size:20px;transition:opacity 0.3s;">&#128100;</span>
+        <span id="userEmail" style="visibility:hidden;opacity:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;background:#dac7f7;padding:4px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);color:#6a1b9a;transition:opacity 0.3s,visibility 0.3s;">-</span>
+      </div>
+      <button id="logoutBtn" style="margin-left:12px;background:#e57373;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:14px;cursor:pointer;">Logout</button>
+    </div>
+  </nav>
+  <main style="display:flex;justify-content:center;align-items:center;min-height:80vh;padding:0 10vw;">
+    <div class="profile-card" style="max-width:400px;width:100%;margin:0 auto;padding:32px 24px;background:#fff;border-radius:16px;box-shadow:0 4px 24px rgba(92,84,163,0.10);display:flex;flex-direction:column;align-items:center;gap:18px;animation:fadeInUp 0.7s cubic-bezier(.4,1.4,.7,1) forwards;">
+      <img id="profileImg" src="../pic/placeholder.png" alt="Profile" style="width:100px;height:100px;border-radius:50%;object-fit:cover;border:3px solid #dac7f7;">
+      <div style="font-size:1.2em;font-weight:bold;" id="profileName">-</div>
+      <div style="color:#666;">สมัครเมื่อ <span id="profileCreated">-</span></div>
+      <div style="font-size:1em;color:#6a1b9a;word-break:break-all;" id="profileEmail">-</div>
+      <button onclick="window.location.href='editmyprofile.html'" style="background:#7c4dff;color:#fff;border:none;border-radius:8px;padding:8px 24px;font-size:16px;cursor:pointer;">แก้ไขโปรไฟล์</button>
+    </div>
+  <script type="module" src="../js/myprofile.js"></script>
+  <script>
+    const emailCard = document.getElementById('emailCard');
+    const userEmail = document.getElementById('userEmail');
+    const bellIcon = document.getElementById('bellIcon');
+    const userIcon = document.getElementById('userIcon');
+
+    emailCard.onmouseenter = () => {
+      emailCard.style.gap = '0';
+      emailCard.style.width = '220px';
+      bellIcon.style.opacity = '0';
+      userIcon.style.opacity = '0';
+      userEmail.style.visibility = 'visible';
+      userEmail.style.opacity = '1';
+    };
+    emailCard.onmouseleave = () => {
+      emailCard.style.gap = '4px';
+      emailCard.style.width = '64px';
+      bellIcon.style.opacity = '1';
+      userIcon.style.opacity = '1';
+      userEmail.style.visibility = 'hidden';
+      userEmail.style.opacity = '0';
+    };
+  </script>
+  <script type="module">
+import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+const logoutBtn = document.getElementById('logoutBtn');
+if (logoutBtn) {
+  logoutBtn.onclick = async () => {
+    const auth = getAuth();
+    await signOut(auth);
+    localStorage.clear();
+    window.location.href = 'login.html';
+  };
+}
+</script>
+  </main>
+</body>
+</html>

@@ -1,0 +1,65 @@
+body {
+  margin: 0;
+  font-family: 'Kanit', Arial, sans-serif;
+  background: url('../pic/wallpaper1.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+.navbar {
+  background: #dac7f7;
+  color: #4b2e83;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+}
+.logo {
+  display: flex;
+  align-items: center;
+}
+.logo img {
+  margin-right: 8px;
+}
+.logo span {
+  font-weight: bold;
+  color: #4b2e83;
+  font-size: 1.2em;
+}
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+}
+.nav-links a {
+  color: #4b2e83;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 8px 16px;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+.nav-links a.active,
+  .nav-links a:hover {
+  background: #b48be4;
+  color: #fff;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: #e7c6f7;
+  padding: 6px 18px;
+  border-radius: 24px;
+  font-size: 1.1em;
+  font-weight: 500;
+  color: #4b2e83;
+  box-shadow: 0 2px 8px rgba(44, 62, 80, 0.08);
+}
+.user-info .icon {
+  margin: 0 2px;
+  font-size: 1.3em;
+}

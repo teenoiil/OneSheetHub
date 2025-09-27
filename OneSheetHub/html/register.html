@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>สมัครสมาชิก | OneSheetHub</title>
+  <link rel="stylesheet" href="../css/register.css">
+</head>
+<body style="background: url('../pic/wallpaper1.png') no-repeat center center fixed; background-size: cover;">
+  <nav class="navbar">
+    <div class="logo">
+      <img src="../pic/placeholder.png" alt="OneSheetHub Logo" height="40">
+      <span>OneSheet<br>Hub</span>
+    </div>
+    <ul class="nav-links">
+      <li><a href="login.html" class="active">เข้าสู่ระบบ</a></li>
+    </ul>
+  </nav>
+  <main>
+    <div class="register-container">
+      <form class="register-form">
+        <h2>สมัครสมาชิก</h2>
+        <div class="input-group">
+          <span class="icon">✉️</span>
+          <input type="email" placeholder="อีเมล" required>
+        </div>
+        <div class="input-group">
+          <span class="icon">🔒</span>
+          <input type="password" placeholder="รหัสผ่าน" required>
+        </div>
+        <div class="input-group">
+          <span class="icon">🔒</span>
+          <input type="password" placeholder="ยืนยันรหัสผ่าน" required>
+        </div>
+        <div class="button-group">
+          <button type="button" class="cancel">ยกเลิก</button>
+          <button type="submit" class="submit">ยืนยัน</button>
+        </div>
+      </form>
+      <script type="module" src="../js/register.js"></script>
+      <script>
+        document.querySelector('.cancel').addEventListener('click', function() {
+          const form = document.querySelector('.register-form');
+          form.reset();
+        });
+      </script>
+    </div>
+  </main>
+</body>
+</html>

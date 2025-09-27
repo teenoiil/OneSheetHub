@@ -1,0 +1,90 @@
+{
+  "hosting": {
+    "public": "OneSheetHub",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "redirects": [
+      {
+        "source": "/login.html",
+        "destination": "/html/login.html",
+        "type": 301
+      },
+      {
+        "source": "/viewsheet.html",
+        "destination": "/html/viewsheet.html",
+        "type": 301
+      },
+      {
+        "source": "/mysheet.html",
+        "destination": "/html/mysheet.html",
+        "type": 301
+      },
+      {
+        "source": "/register.html",
+        "destination": "/html/register.html",
+        "type": 301
+      },
+      {
+        "source": "/myprofile.html",
+        "destination": "/html/myprofile.html",
+        "type": 301
+      },
+      {
+        "source": "/upload.html",
+        "destination": "/html/upload.html",
+        "type": 301
+      },
+      {
+        "source": "/sheetdetail.html",
+        "destination": "/html/sheetdetail.html",
+        "type": 301
+      },
+      {
+        "source": "/home.html",
+        "destination": "/html/home.html",
+        "type": 301
+      },
+      {
+        "source": "/editmyprofile.html",
+        "destination": "/html/editmyprofile.html",
+        "type": 301
+      }
+    ],
+    "rewrites": [
+      {
+        "source": "/",
+        "destination": "/html/login.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**/*.@(css|js|png|jpg|jpeg|gif|svg|webp)",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "public, max-age=31536000, immutable"
+          }
+        ]
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local"
+      ],
+      "predeploy": [
+        "npm --prefix \"$RESOURCE_DIR\" run lint"
+      ]
+    }
+  ]
+}

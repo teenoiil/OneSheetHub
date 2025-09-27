@@ -1,0 +1,4 @@
+//firebase emulators:start --only hosting //เอาไว้ทดสอบ 
+//firebase login
+//firebase use onesheethub //เชื่อมต่อโปรเจค
+//firebase deploy --only hosting //Deploy

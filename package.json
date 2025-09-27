@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.0",
+    "nodemailer": "^7.0.5"
+  }
+}

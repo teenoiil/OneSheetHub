@@ -1,0 +1,110 @@
+body {
+  margin: 0;
+  font-family: 'Kanit', Arial, sans-serif;
+  background: url('../pic/wallpaper1.png') no-repeat center center fixed;
+  background-size: cover;
+}
+
+@keyframes gradientBG {
+  0% {background-position: 0% 50%;}
+  50% {background-position: 100% 50%;}
+  100% {background-position: 0% 50%;}
+}
+
+.home-content {
+  opacity: 0;
+  transform: translateY(30px);
+  animation: fadeInUp 1.2s cubic-bezier(.42,0,.58,1) 0.2s forwards;
+}
+
+@keyframes fadeInUp {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.button-group button {
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.button-group button:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(124,77,255,0.15);
+}
+body {
+  margin: 0;
+  font-family: 'Kanit', Arial, sans-serif;
+  background: #f7f5ff;
+}
+
+.navbar {
+  background: #d1c4e9;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 32px;
+  height: 60px;
+}
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+  color: #5e35b1;
+  font-size: 18px;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  color: #333;
+  background: #e1bee7;
+  border-radius: 20px;
+  padding: 4px 12px;
+}
+.user-info .icon {
+  font-size: 18px;
+  color: #757575;
+}
+main {
+  min-height: calc(100vh - 60px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background-color: transparent; */
+}
+.home-content {
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(92, 84, 163, 0.15);
+  padding: 48px 32px;
+  text-align: center;
+  background: transparent;
+}
+.home-content h2 {
+  color: #6a1b9a;
+  margin-bottom: 12px;
+}
+.home-content p {
+  font-size: 20px;
+  color: #333;
+  margin-bottom: 32px;
+}
+.button-group {
+  display: flex;
+  gap: 32px;
+  justify-content: center;
+}
+.view-btn, .upload-btn {
+  background: #e0e0e0;
+  color: #333;
+  border: none;
+  border-radius: 8px;
+  padding: 16px 32px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.view-btn:hover, .upload-btn:hover {
+  background: #bdbdbd;
+}

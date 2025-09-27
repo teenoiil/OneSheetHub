@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <title>PDF Viewer | OneSheetHub</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css" />
+  <style>
+    html, body {
+      margin: 0;
+      height: 100%;
+      background: #111;
+      color: #eee;
+      font-family: sans-serif;
+      -webkit-user-select: none;
+      user-select: none;
+    }
+
+    .toolbar {
+      background: #1c1c1c;
+      padding: 10px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 6px 12px;
+      border: none;
+      background: #2e2e2e;
+      color: white;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    #viewerContainer {
+      position: absolute;
+      top: 48px;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      overflow: auto;
+      background: #222;
+    }
+
+    #viewer .page {
+      margin: 10px auto;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      background: white;
+    }
+
+    .error-message {
+      color: #ff6b6b;
+      text-align: center;
+      padding: 1rem;
+    }
+
+    .watermark {
+      position: fixed;
+      inset: 0;
+      z-index: 999;
+      pointer-events: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: rgba(255,255,255,0.12);
+      font-size: 48px;
+      font-weight: bold;
+      text-align: center;
+      mix-blend-mode: overlay;
+    }
+  </style>
+</head>
+<body oncontextmenu="return false">
+
+  <div class="toolbar">
+    <button class="btn" onclick="goPreviousPage()">ก่อนหน้า</button>
+    <button class="btn" onclick="goNextPage()">ถัดไป</button>
+    <span id="pageInfo">หน้า ? / ?</span>
+  </div>
+
+  <div id="viewerContainer">
+    <div id="viewer" class="pdfViewer"></div>
+  </div>
+
+  <div id="error" class="error-message" style="display: none;"></div>
+  <div class="watermark">ห้ามบันทึก/คัดลอกเอกสาร</div>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.js"></script>
+
+  <script>
+    const demoPDF = 'https://raw.githubusercontent.com/mozilla/pdf.js/ba2edeae/web/compressed.tracemonkey-pldi-09.pdf';
+    const pdfUrl = demoPDF;
+
+    const viewerContainer = document.getElementById('viewerContainer');
+    const container = document.getElementById('viewer');
+    const errorBox = document.getElementById('error');
+    const pageInfo = document.getElementById('pageInfo');
+
+    let pdfViewer, pdfDoc;
+
+    function showError(msg) {
+      errorBox.style.display = 'block';
+      errorBox.textContent = msg;
+    }
+
+    function updatePageInfo() {
+      if (pdfViewer && pdfViewer._pages) {
+        const current = pdfViewer._currentPageNumber;
+        const total = pdfViewer._pagesCount;
+        pageInfo.textContent = `หน้า ${current} / ${total}`;
+      }
+    }
+
+    function goPreviousPage() {
+      if (pdfViewer.currentPageNumber > 1) {
+        pdfViewer.currentPageNumber--;
+        updatePageInfo();
+      }
+    }
+
+    function goNextPage() {
+      if (pdfViewer.currentPageNumber < pdfViewer.pagesCount) {
+        pdfViewer.currentPageNumber++;
+        updatePageInfo();
+      }
+    }
+
+    const loadingTask = pdfjsLib.getDocument({ url: pdfUrl });
+    loadingTask.promise.then((pdf) => {
+      pdfDoc = pdf;
+
+      const eventBus = new pdfjsViewer.EventBus();
+      const linkService = new pdfjsViewer.PDFLinkService({ eventBus });
+
+      pdfViewer = new pdfjsViewer.PDFViewer({
+        container: viewerContainer,
+        eventBus,
+        linkService,
+      });
+
+      linkService.setViewer(pdfViewer);
+      pdfViewer.setDocument(pdf);
+      linkService.setDocument(pdf);
+
+      eventBus.on('pagesinit', () => {
+        pdfViewer.currentScaleValue = 'page-width';
+        updatePageInfo();
+      });
+
+      eventBus.on('pagechanging', (evt) => {
+        updatePageInfo();
+      });
+
+    }).catch((error) => {
+      console.error('PDF load error:', error);
+      showError('เกิดข้อผิดพลาดในการโหลด PDF: ' + error.message);
+    });
+
+    // ป้องกันคัดลอก (Ctrl+C, Ctrl+S, Ctrl+P, Ctrl+U)
+    document.addEventListener('keydown', (e) => {
+      if (
+        (e.ctrlKey && ['c', 's', 'p', 'u'].includes(e.key.toLowerCase())) ||
+        e.key === 'PrintScreen'
+      ) {
+        e.preventDefault();
+        alert('ห้ามคัดลอกหรือบันทึกเอกสารนี้');
+      }
+    });
+
+    // ป้องกันแคปหน้าจอ (ตรวจ PrintScreen)
+    document.addEventListener('keyup', (e) => {
+      if (e.key === 'PrintScreen') {
+        alert('ห้ามแคปหน้าจอเอกสาร');
+      }
+    });
+
+    // ตรวจ DevTools (เปิด Inspect)
+    const devtoolsDetector = setInterval(() => {
+      const widthThreshold = window.outerWidth - window.innerWidth > 160;
+      const heightThreshold = window.outerHeight - window.innerHeight > 160;
+      if (widthThreshold || heightThreshold) {
+        alert('ไม่อนุญาตให้เปิด DevTools');
+        location.reload();
+      }
+    }, 1000);
+  </script>
+</body>
+</html>

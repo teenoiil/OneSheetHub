@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Upload | OneSheetHub</title>
+  <link rel="stylesheet" href="../css/upload.css">
+  <style>
+    @keyframes fadeInUp {
+      0% { opacity: 0; transform: translateY(40px); }
+      100% { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <nav class="navbar">
+    <div class="logo">
+      <img src="../pic/placeholder.png" alt="OneSheetHub Logo" height="40">
+      <span>OneSheet<br>Hub</span>
+    </div>
+    <div class="user-info">
+      <div id="emailCard" style="display:inline-flex;align-items:center;gap:4px;width:64px;min-height:32px;transition:gap 0.3s, width 0.3s;position:relative;justify-content:center;background:#dac7f7;border-radius:16px;padding:4px 8px;overflow:hidden;">
+        <span class="icon" id="bellIcon" style="font-size:20px;transition:opacity 0.3s;">&#128276;</span>
+        <span class="icon" id="userIcon" style="font-size:20px;transition:opacity 0.3s;">&#128100;</span>
+        <span id="userEmail" style="visibility:hidden;opacity:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;background:#dac7f7;padding:4px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);color:#6a1b9a;transition:opacity 0.3s,visibility 0.3s;">-</span>
+      </div>
+      <button id="logoutBtn" style="margin-left:12px;background:#e57373;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:14px;cursor:pointer;">Logout</button>
+    </div>
+  </nav>
+  <main>
+    <div class="upload-content" style="margin-top:48px;display:flex;justify-content:center;align-items:center;animation:fadeInUp 0.7s cubic-bezier(.4,1.4,.7,1) forwards;">
+      <form id="uploadForm" enctype="multipart/form-data">
+        <div class="upload-left">
+          <div class="image-preview">
+            <img id="previewImg" src="../pic/placeholder.png" alt="Preview" />
+          </div>
+          <button type="submit" class="upload-btn">Upload</button>
+          <p id="uploadMsg" style="color:green;text-align:center;margin-top:8px;"></p>
+        </div>
+        <div class="upload-right">
+          <div class="upload-grid" style="display: flex; flex-direction: column; align-items: flex-start; gap: 18px; width: 100%; max-width: 480px; margin: 0 auto;">
+            <div class="form-group"><select id="year" required><option value="">เลือกปีการศึกษา</option><option value="2565">2565</option><option value="2566">2566</option><option value="2567">2567</option><option value="2568">2568</option></select></div>
+            <div class="form-group"><select id="faculty" required><option value="">เลือกคณะ</option><option value="วิศวกรรมศาสตร์">วิศวกรรมศาสตร์</option><option value="บริหารธุรกิจ">บริหารธุรกิจ</option><option value="นิติศาสตร์">นิติศาสตร์</option></select></div>
+            <div class="form-group"><select id="major" required><option value="">เลือกสาขา</option><option value="วิศวกรรมคอมพิวเตอร์">วิศวกรรมคอมพิวเตอร์</option><option value="การตลาด">การตลาด</option><option value="กฎหมายธุรกิจ">กฎหมายธุรกิจ</option></select></div>
+            <div class="form-group"><input type="text" id="sheetName" required placeholder="ชื่อชีท"></div>
+            <div class="form-group"><select id="subjectCode" required><option value="">เลือกรหัสวิชา</option><option value="COMP101">COMP101</option><option value="MKT201">MKT201</option><option value="LAW301">LAW301</option></select></div>
+            <div class="form-group"><input type="text" id="author" required placeholder="ผู้จัดทำ"></div>
+            <div class="form-group"><select id="semester" required><option value="">เลือกภาคเรียน</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
+            <div class="form-group"><input type="text" id="description" required placeholder="รายละเอียด"></div>
+            <div class="form-group"><input type="number" id="price" required placeholder="ราคา"></div>
+            <div class="form-group" style="text-align:center;">
+              <input type="file" id="coverFile" accept="image/*" style="margin-left:8px;">
+            </div>
+            <div class="form-group" style="text-align:center;">
+              <input type="file" id="sheetFile" accept="application/pdf" style="margin-left:8px;">
+            </div>
+            <div style="width:100%;text-align:center;margin-top:24px;">
+              <button onclick="window.history.back()" type="button" style="background:#fff;color:#7c4dff;border:1px solid #7c4dff;border-radius:8px;padding:8px 24px;font-size:18px;cursor:pointer;">ย้อนกลับ</button>
+            </div>
+          </div>
+        </div>  
+      </form>
+    </div>
+    <script type="module" src="../js/upload.js"></script>
+  </main>
+  <script>
+    const emailCard = document.getElementById('emailCard');
+    const userEmail = document.getElementById('userEmail');
+    const bellIcon = document.getElementById('bellIcon');
+    const userIcon = document.getElementById('userIcon');
+
+    emailCard.onmouseenter = () => {
+      emailCard.style.gap = '0';
+      emailCard.style.width = '220px';
+      bellIcon.style.opacity = '0';
+      userIcon.style.opacity = '0';
+      userEmail.style.visibility = 'visible';
+      userEmail.style.opacity = '1';
+    };
+    emailCard.onmouseleave = () => {
+      emailCard.style.gap = '4px';
+      emailCard.style.width = '64px';
+      bellIcon.style.opacity = '1';
+      userIcon.style.opacity = '1';
+      userEmail.style.visibility = 'hidden';
+      userEmail.style.opacity = '0';
+    };
+  </script>
+  <script type="module">
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    const logoutBtn = document.getElementById('logoutBtn');
+    if (logoutBtn) {
+      logoutBtn.onclick = async () => {
+        const auth = getAuth();
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = 'login.html';
+      };
+    }
+  </script>
+</body>
+</html>
