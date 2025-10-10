@@ -54,7 +54,6 @@ button:hover, .actions button:hover {
   transform: scale(1.08);
   box-shadow: 0 4px 16px rgba(124,77,255,0.15);
 }
-/* ...existing code... */
 .navbar {
   background: #dac7f7;
   color: #4b2e83;
@@ -116,7 +115,6 @@ button:hover, .actions button:hover {
 main {
   min-height: calc(100vh - 60px);
   padding: 32px 0;
-  /* background-color: transparent; */
 }
 .search-filter {
   display: flex;
@@ -188,4 +186,126 @@ main {
 .sheet-card .actions button:hover {
   background: #7c4dff;
   color: #fff;
+}
+
+/* ✅ เพิ่มส่วนตะกร้าขวามือ */
+.cart-toggle {
+  position: fixed;
+  bottom: 80px;        /* ⬆️ เดิม 24px → ยกขึ้นสูงกว่าเดิม (ไม่บังปุ่มชำระ) */
+  right: 24px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #7c4dff;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 26px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  cursor: pointer;
+  transition: transform 0.2s;
+  z-index: 1000;
+}
+.cart-toggle:hover {
+  transform: scale(1.05);
+}
+
+.cart-panel {
+  position: fixed;
+  top: 0; right: -420px;
+  width: 380px;
+  height: 100%;
+  background: #faf8ff;
+  box-shadow: -4px 0 12px rgba(0,0,0,0.15);
+  transition: right 0.3s ease;
+  padding: 20px;
+  z-index: 999;
+  display: flex;
+  flex-direction: column;
+}
+.cart-panel.open { right: 0; }
+
+.cart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-weight: 600;
+  font-size: 18px;
+  color: #4b2e83;
+  margin-bottom: 12px;
+}
+
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 0;
+  border-bottom: 1px solid #eee;
+}
+.cart-item img {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+}
+.cart-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  font-size: 15px;
+}
+.cart-item-remove {
+  background: none;
+  border: none;
+  color: #e57373;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+.cart-footer {
+  margin-top: auto;
+  border-top: 1px solid #ddd;
+  padding-top: 12px;
+  padding-bottom: 24px;   /* ⬆️ เดิม 16px → เพิ่มพื้นที่ให้ปุ่มชำระลอยขึ้น */
+  background: #faf8ff;
+  position: sticky;
+  bottom: 0;              
+  z-index: 5;
+}
+
+.cart-total {
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 16px;
+  margin-bottom: 10px;
+}
+
+.checkout-btn {
+  width: 100%;
+  background: #6a1b9a;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;           /* ปรับให้กดง่ายขึ้น */
+  cursor: pointer;
+  font-size: 15px;
+  transition: background 0.2s;
+}
+.checkout-btn:hover {
+  background: #4a0072;
+}
+/* ✅ ซ่อนปุ่มตะกร้าเมื่อแทบตะกร้าเปิดอยู่ */
+.cart-panel.open ~ .cart-toggle {
+  opacity: 0;
+  pointer-events: none;
+  transform: scale(0.9);
+  transition: opacity 0.3s, transform 0.3s;
+}
+
+/* ✅ ให้ปุ่มค่อยๆ โผล่กลับมาหลังปิดแทบ */
+.cart-toggle {
+  opacity: 1;
+  transition: opacity 0.3s, transform 0.3s;
 }

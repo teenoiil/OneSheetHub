@@ -1,16 +1,32 @@
 <!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ซื้อชีท | OneSheetHub</title>
-  <link rel="stylesheet" href="../css/viewsheet.css">
+  <link rel="stylesheet" href="../css/viewsheet.css" />
+  <style>
+    /* ✅ ซ่อนปุ่มตะกร้าเมื่อแทบตะกร้าเปิดอยู่ */
+    .cart-panel.open ~ .cart-toggle {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.9);
+      transition: opacity 0.3s, transform 0.3s;
+    }
+
+    .cart-toggle {
+      opacity: 1;
+      transition: opacity 0.3s, transform 0.3s;
+    }
+  </style>
 </head>
+
 <body>
+  <!-- 🔝 Navbar -->
   <nav class="navbar">
     <div class="logo">
-      <img src="../pic/placeholder.png" alt="OneSheetHub Logo" height="40">
-      <span>OneSheet<br>Hub</span>
+      <img src="../pic/placeholder.png" alt="OneSheetHub Logo" height="40" />
+      <span>OneSheet<br />Hub</span>
     </div>
     <ul class="nav-links">
       <li><a href="home.html">หน้าแรก</a></li>
@@ -20,17 +36,68 @@
       <li><a href="myprofile.html">โปรไฟล์</a></li>
     </ul>
     <div class="user-info">
-      <div id="emailCard" style="display:inline-flex;align-items:center;gap:4px;width:64px;min-height:32px;transition:gap 0.3s, width 0.3s;position:relative;justify-content:center;background:#dac7f7;border-radius:16px;padding:4px 8px;overflow:hidden;">
-        <span class="icon" id="bellIcon" style="font-size:20px;transition:opacity 0.3s;">&#128276;</span>
-        <span class="icon" id="userIcon" style="font-size:20px;transition:opacity 0.3s;">&#128100;</span>
-        <span id="userEmail" style="visibility:hidden;opacity:0;position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);white-space:nowrap;background:#dac7f7;padding:4px 12px;border-radius:8px;box-shadow:0 2px 8px rgba(0,0,0,0.08);color:#6a1b9a;transition:opacity 0.3s,visibility 0.3s;">-</span>
+      <div
+        id="emailCard"
+        style="
+          display: inline-flex;
+          align-items: center;
+          gap: 4px;
+          width: 64px;
+          min-height: 32px;
+          transition: gap 0.3s, width 0.3s;
+          position: relative;
+          justify-content: center;
+          background: #dac7f7;
+          border-radius: 16px;
+          padding: 4px 8px;
+          overflow: hidden;
+        "
+      >
+        <span class="icon" id="bellIcon" style="font-size: 20px; transition: opacity 0.3s;">&#128276;</span>
+        <span class="icon" id="userIcon" style="font-size: 20px; transition: opacity 0.3s;">&#128100;</span>
+        <span
+          id="userEmail"
+          style="
+            visibility: hidden;
+            opacity: 0;
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+            background: #dac7f7;
+            padding: 4px 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            color: #6a1b9a;
+            transition: opacity 0.3s, visibility 0.3s;
+          "
+          >-</span
+        >
       </div>
-      <button id="logoutBtn" style="margin-left:12px;background:#e57373;color:#fff;border:none;border-radius:8px;padding:6px 16px;font-size:14px;cursor:pointer;">Logout</button>
+      <button
+        id="logoutBtn"
+        style="
+          margin-left: 12px;
+          background: #e57373;
+          color: #fff;
+          border: none;
+          border-radius: 8px;
+          padding: 6px 16px;
+          font-size: 14px;
+          cursor: pointer;
+        "
+      >
+        Logout
+      </button>
     </div>
   </nav>
+
+  <!-- 🌟 Main -->
   <main>
+    <!-- 🔍 ส่วนค้นหา -->
     <div class="search-filter">
-      <input type="text" id="searchInput" placeholder="ค้นหาชีท...">
+      <input type="text" id="searchInput" placeholder="ค้นหาชีท..." />
       <select id="facultySelect">
         <option value="">เลือกคณะ</option>
         <option value="วิศวกรรมศาสตร์">วิศวกรรมศาสตร์</option>
@@ -68,47 +135,74 @@
       </select>
       <button id="searchBtn">ค้นหา</button>
     </div>
-    <div id="sheetLoading" style="display:flex;justify-content:center;align-items:center;margin:32px 0;">
+
+    <!-- 🔄 โหลดชีท -->
+    <div id="sheetLoading" style="display: flex; justify-content: center; align-items: center; margin: 32px 0;">
       <div class="spinner"></div>
     </div>
+
+    <!-- 🧾 รายการชีท -->
     <div class="sheet-list" id="sheetList"></div>
-    <!-- ปุ่มย้อนกลับจะถูกเพิ่มโดย JS หลังโหลดข้อมูล -->
+
+    <!-- ✅ ตะกร้า Slide-in -->
+    <div id="cartPanel" class="cart-panel">
+      <div class="cart-header">
+        <span>🛒 ตะกร้าชีท</span>
+        <button id="closeCart" style="background: none; border: none; font-size: 20px; cursor: pointer;">✕</button>
+      </div>
+      <div id="cartItems"></div>
+      <div class="cart-footer">
+        <div class="cart-total">
+          <span>รวมทั้งหมด:</span>
+          <span id="cartTotal">0฿</span>
+        </div>
+        <button id="checkoutBtn" class="checkout-btn">ชำระและไปหน้าชีทของฉัน</button>
+      </div>
+    </div>
+
+    <!-- 🛒 ปุ่มลอยเปิดตะกร้า (ต้องอยู่หลัง cartPanel) -->
+    <div id="cartToggle" class="cart-toggle">🛒</div>
+
     <script type="module" src="../js/viewsheet.js"></script>
   </main>
-  <script>
-  const emailCard = document.getElementById('emailCard');
-  const userEmail = document.getElementById('userEmail');
-  const bellIcon = document.getElementById('bellIcon');
-  const userIcon = document.getElementById('userIcon');
 
-  emailCard.onmouseenter = () => {
-    emailCard.style.gap = '0';
-    emailCard.style.width = '220px';
-    bellIcon.style.opacity = '0';
-    userIcon.style.opacity = '0';
-    userEmail.style.visibility = 'visible';
-    userEmail.style.opacity = '1';
-  };
-  emailCard.onmouseleave = () => {
-    emailCard.style.gap = '4px';
-    emailCard.style.width = '64px';
-    bellIcon.style.opacity = '1';
-    userIcon.style.opacity = '1';
-    userEmail.style.visibility = 'hidden';  
-    userEmail.style.opacity = '0';
-  };
+  <!-- 💌 Hover แสดงอีเมล -->
+  <script>
+    const emailCard = document.getElementById("emailCard");
+    const userEmail = document.getElementById("userEmail");
+    const bellIcon = document.getElementById("bellIcon");
+    const userIcon = document.getElementById("userIcon");
+
+    emailCard.onmouseenter = () => {
+      emailCard.style.gap = "0";
+      emailCard.style.width = "220px";
+      bellIcon.style.opacity = "0";
+      userIcon.style.opacity = "0";
+      userEmail.style.visibility = "visible";
+      userEmail.style.opacity = "1";
+    };
+    emailCard.onmouseleave = () => {
+      emailCard.style.gap = "4px";
+      emailCard.style.width = "64px";
+      bellIcon.style.opacity = "1";
+      userIcon.style.opacity = "1";
+      userEmail.style.visibility = "hidden";
+      userEmail.style.opacity = "0";
+    };
   </script>
+
+  <!-- 🚪 Logout -->
   <script type="module">
-import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-const logoutBtn = document.getElementById('logoutBtn');
-if (logoutBtn) {
-  logoutBtn.onclick = async () => {
-    const auth = getAuth();
-    await signOut(auth);
-    localStorage.clear();
-    window.location.href = 'login.html';
-  };
-}
-</script>
+    import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+    const logoutBtn = document.getElementById("logoutBtn");
+    if (logoutBtn) {
+      logoutBtn.onclick = async () => {
+        const auth = getAuth();
+        await signOut(auth);
+        localStorage.clear();
+        window.location.href = "login.html";
+      };
+    }
+  </script>
 </body>
 </html>
