@@ -1,4 +1,4 @@
-// viewsheet.js — โหลดรายการชีท + ซื้อด้วยรหัสครั้งเดียว (เรียก /verify)
+// viewsheet.js — โหลดรายการชีท + ระบบตะกร้า (ไม่มี OTP)
 import firebaseConfig from './firebaseConfig.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
@@ -10,24 +10,23 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 /* -------------------- DOM --------------------- */
-const userEmailSpan   = document.getElementById('userEmail');
-const sheetList       = document.getElementById('sheetList');
-const sheetLoading    = document.getElementById('sheetLoading');
-const searchBtn       = document.getElementById('searchBtn');
+const userEmailSpan = document.getElementById('userEmail');
+const sheetList = document.getElementById('sheetList');
+const sheetLoading = document.getElementById('sheetLoading');
+const searchBtn = document.getElementById('searchBtn');
 
 const $ = (id) => document.getElementById(id);
 
 /* ----------------- AUTH GUARD ----------------- */
 onAuthStateChanged(auth, (user) => {
-  if (user && userEmailSpan) {
-    userEmailSpan.textContent = user.email;
-  } else {
-    window.location.href = 'login.html';
-  }
+  if (user && userEmailSpan) userEmailSpan.textContent = user.email;
+  else window.location.href = 'login.html';
 });
 
 /* ----------------- HELPERS -------------------- */
-function showLoading(show) { if (sheetLoading) sheetLoading.style.display = show ? 'flex' : 'none'; }
+function showLoading(show) {
+  if (sheetLoading) sheetLoading.style.display = show ? 'flex' : 'none';
+}
 function emptyState(msg) {
   if (!sheetList) return;
   sheetList.innerHTML = `
@@ -45,35 +44,32 @@ async function loadSheets() {
   try {
     const qs = await getDocs(collection(db, 'sheets'));
 
-    // อ่านค่ากรองจากฟอร์ม (มีหรือไม่มีก็ได้)
     const searchText = $('searchInput')?.value?.trim().toLowerCase() || '';
-    const faculty    = $('facultySelect')?.value || '';
-    const major      = $('majorSelect')?.value || '';
-    const term       = $('termSelect')?.value || '';
-    const year       = $('yearSelect')?.value || '';
-    const type       = $('typeSelect')?.value || '';
+    const faculty = $('facultySelect')?.value || '';
+    const major = $('majorSelect')?.value || '';
+    const term = $('termSelect')?.value || '';
+    const year = $('yearSelect')?.value || '';
+    const type = $('typeSelect')?.value || '';
 
     let shown = 0;
 
     qs.forEach((docSnap) => {
       const data = docSnap.data() || {};
 
-      // ---------- กรอง ----------
       let match = true;
       if (searchText) {
-        const all = `${data.sheetName||''} ${data.subjectCode||''} ${data.author||''} ${data.description||''}`.toLowerCase();
+        const all = `${data.sheetName || ''} ${data.subjectCode || ''} ${data.author || ''} ${data.description || ''}`.toLowerCase();
         if (!all.includes(searchText)) match = false;
       }
-      if (faculty && faculty !== 'คณะ...' && data.faculty !== faculty) match = false;
-      if (major   && major   !== 'สาขา...' && data.major   !== major)   match = false;
-      if (term    && term    !== 'เทอม'    && data.semester!== term)    match = false;
-      if (year    && year    !== 'ปีการศึกษา' && data.year !== year)    match = false;
-      if (type    && type    !== 'ประเภท'  && (data.type||'').toLowerCase() !== type.toLowerCase()) match = false;
+      if (faculty && data.faculty !== faculty) match = false;
+      if (major && data.major !== major) match = false;
+      if (term && data.semester !== term) match = false;
+      if (year && data.year !== year) match = false;
+      if (type && (data.type || '').toLowerCase() !== type.toLowerCase()) match = false;
       if (!match) return;
 
       shown++;
 
-      // ---------- การ์ด ----------
       const card = document.createElement('div');
       card.className = 'sheet-card';
       const coverSrc = data.coverUrl || data.coverBase64 || '../pic/placeholder.png';
@@ -85,78 +81,35 @@ async function loadSheets() {
                alt="cover"
                style="margin-bottom:8px;width:200px;height:200px;object-fit:cover;border-radius:8px;background:#ddd">
         </div>
-        <div class="code"><strong>รหัสวิชา:</strong> ${data.subjectCode || '-'} </div>
-        <div class="info">
-          <strong>คณะ:</strong> ${data.faculty || '-'}<br>
-          <strong>สาขา:</strong> ${data.major || '-'}<br>
-          <strong>เทอม:</strong> ${data.semester || '-'}<br>
-          <strong>ปีการศึกษา:</strong> ${data.year || '-'}<br>
-          <strong>ชื่อชีท:</strong> ${data.sheetName || '-'}<br>
-          <strong>ผู้จัดทำ:</strong> ${data.author || '-'}<br>
-          <strong>รายละเอียด:</strong> ${data.description || '-'}<br>
-          <strong>ราคา:</strong> ${data.price || '-'}
+        <div class="info" style="font-family:'Kanit',sans-serif;text-align:left;color:#333;">
+          <div><strong>รหัสวิชา:</strong> ${data.subjectCode || '-'}</div>
+          <div><strong>คณะ:</strong> ${data.faculty || '-'} | <strong>สาขา:</strong> ${data.major || '-'}</div>
+          <div><strong>เทอม:</strong> ${data.semester || '-'} | <strong>ปี:</strong> ${data.year || '-'}</div>
+          <div><strong>ชื่อชีท:</strong> ${data.sheetName || '-'}</div>
+          <div><strong>ผู้จัดทำ:</strong> ${data.author || '-'}</div>
+          <div><strong>รายละเอียด:</strong> ${data.description || '-'}</div>
+          <div><strong>ราคา:</strong> ${data.price || '0'}฿</div>
         </div>
-        <div class="actions" style="display:flex;gap:8px;flex-wrap:wrap">
-          <button class="detail-btn btn" data-id="${docSnap.id}">เพิ่มเติม</button>
-          <button class="buy-btn btn" data-id="${docSnap.id}">ซื้อชีท</button>
+        <div class="actions" style="margin-top:8px;display:flex;gap:8px;">
+          <button class="detail-btn btn"
+            data-id="${docSnap.id}">เพิ่มเติม</button>
+          <button class="buy-btn btn"
+            data-id="${docSnap.id}"
+            data-name="${data.sheetName || '-'}"
+            data-price="${data.price || '0'}"
+            data-img="${coverSrc}">เพิ่มลงตะกร้า</button>
         </div>
       `;
       sheetList.appendChild(card);
     });
 
-    if (shown === 0) {
-      emptyState('ไม่พบชีทที่ตรงกับเงื่อนไข');
-    }
+    if (shown === 0) emptyState('ไม่พบชีทที่ตรงกับเงื่อนไข');
 
-    // ---------- ปุ่ม "เพิ่มเติม" ----------
-    sheetList.querySelectorAll('.detail-btn').forEach(btn => {
+    // ปุ่ม “เพิ่มเติม”
+    document.querySelectorAll('.detail-btn').forEach(btn => {
       btn.addEventListener('click', () => {
-        const id = btn.getAttribute('data-id');
+        const id = btn.dataset.id;
         if (id) window.location.href = `sheetdetail.html?id=${encodeURIComponent(id)}`;
-      });
-    });
-
-    // ---------- ปุ่ม "ซื้อชีท" ----------
-    sheetList.querySelectorAll('.buy-btn').forEach(btn => {
-      btn.addEventListener('click', async () => {
-        const fileId = btn.getAttribute('data-id');
-        if (!fileId) return;
-
-        const code = prompt('กรอกรหัส 6 หลักที่ได้รับทางอีเมล:');
-        if (!code) return;
-
-        const user = auth.currentUser;
-        if (!user) { alert('กรุณาเข้าสู่ระบบ'); return; }
-
-        // กันกดซ้ำระหว่างรอ
-        btn.disabled = true;
-        const oldText = btn.textContent;
-        btn.textContent = 'กำลังตรวจสอบ...';
-
-        try {
-          const token = await user.getIdToken();
-          const r = await fetch('https://us-central1-project-sharesheet2.cloudfunctions.net/verify', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': 'Bearer ' + token
-            },
-            body: JSON.stringify({ fileId, code: code.trim() })
-          });
-
-          if (!r.ok) {
-            const msg = await r.text();
-            throw new Error(msg || 'ตรวจรหัสล้มเหลว');
-          }
-
-          // ✅ ไม่เปิด Signed URL → ไปหน้า viewer
-          window.location.href = `viewer.html?id=${encodeURIComponent(fileId)}`;
-        } catch (err) {
-          alert(err?.message || 'เกิดข้อผิดพลาด');
-        } finally {
-          btn.disabled = false;
-          btn.textContent = oldText;
-        }
       });
     });
 
@@ -170,11 +123,89 @@ async function loadSheets() {
 
 /* ------------- SEARCH/ FILTER UX -------------- */
 if (searchBtn) searchBtn.addEventListener('click', loadSheets);
-
-// กด Enter ในช่องค้นหาให้ทำงานทันที
 $('searchInput')?.addEventListener('keydown', (e) => {
   if (e.key === 'Enter') loadSheets();
 });
 
 /* ----------------- FIRST LOAD ----------------- */
 loadSheets();
+
+/* =====================================================
+   🛒 ระบบตะกร้า (คงตำแหน่งเดิมแต่ยกปุ่มขึ้นเล็กน้อย)
+   ===================================================== */
+const cartToggle = document.getElementById('cartToggle');
+const cartPanel = document.getElementById('cartPanel');
+const closeCart = document.getElementById('closeCart');
+const cartItems = document.getElementById('cartItems');
+const cartTotal = document.getElementById('cartTotal');
+const checkoutBtn = document.getElementById('checkoutBtn');
+let cart = [];
+
+function openCart() { cartPanel.classList.add('open'); }
+function closeCartPanel() { cartPanel.classList.remove('open'); }
+cartToggle?.addEventListener('click', () => cartPanel.classList.toggle('open'));
+closeCart?.addEventListener('click', closeCartPanel);
+
+function renderCart() {
+  if (!cartItems) return;
+
+  if (cart.length === 0) {
+    cartItems.innerHTML = '<p style="color:#777;text-align:center;">ยังไม่มีชีทในตะกร้า</p>';
+    cartTotal.textContent = '0฿';
+    return;
+  }
+
+  let total = 0;
+  cartItems.innerHTML = cart.map(item => {
+    total += Number(item.price) || 0;
+    return `
+      <div class="cart-item" style="display:flex;align-items:center;gap:10px;border-bottom:1px solid #eee;padding:8px 0;">
+        <img src="${item.img}" alt="cover" style="width:60px;height:60px;object-fit:cover;border-radius:8px;">
+        <div style="flex:1;">
+          <strong>${item.name}</strong><br>
+          <small>ราคา: ${item.price}฿</small>
+        </div>
+        <button class="remove-item" data-id="${item.id}" style="background:none;border:none;color:#e57373;font-size:18px;cursor:pointer;">🗑</button>
+      </div>
+    `;
+  }).join('');
+
+  cartTotal.textContent = total + '฿';
+}
+
+cartItems?.addEventListener('click', (e) => {
+  if (e.target.classList.contains('remove-item')) {
+    const id = e.target.dataset.id;
+    cart = cart.filter(item => item.id !== id);
+    renderCart();
+  }
+});
+
+document.addEventListener('click', (e) => {
+  if (!e.target.classList.contains('buy-btn')) return;
+
+  const btn = e.target;
+  const id = btn.dataset.id;
+  const name = btn.dataset.name;
+  const price = btn.dataset.price || '0';
+  const img = btn.dataset.img;
+
+  if (cart.some(item => item.id === id)) {
+    alert('ชีทนี้มีอยู่ในตะกร้าแล้ว');
+    openCart();
+    return;
+  }
+
+  cart.push({ id, name, price, img });
+  renderCart();
+  openCart();
+  alert('✅ เพิ่มชีทลงในตะกร้าเรียบร้อยแล้ว');
+});
+
+checkoutBtn?.addEventListener('click', () => {
+  if (cart.length === 0) return alert('ยังไม่มีชีทในตะกร้า');
+  alert('✅ ชำระเงินเรียบร้อยแล้ว! กำลังไปหน้าชีทของฉัน...');
+  cart = [];
+  renderCart();
+  window.location.href = 'mysheet.html';
+});
