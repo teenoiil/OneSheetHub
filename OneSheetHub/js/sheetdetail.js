@@ -38,7 +38,7 @@ async function loadSheetDetail() {
   const data = docSnap.data();
   container.innerHTML = `
     <div class="sheet-detail-left">
-      <img src="${data.coverBase64 || '../img/no-image.png'}" alt="cover">
+      <img src="${data.coverUrl || '../img/no-image.png'}" alt="cover">
       <div style="font-size:20px;margin-top:12px;">
         <strong>จำนวนหน้า:</strong> (${data.pageCount !== undefined ? 'จำนวนหน้า' : '-'}) ${data.pageCount || '-'}<br>
         <strong>ราคา:</strong> (ราคา) ${data.price || '-'} บาท
