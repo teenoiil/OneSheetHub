@@ -1,11 +1,28 @@
 import firebaseConfig from './firebaseConfig.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore, collection, query, where, getDocs, updateDoc } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { 
+  getAuth, 
+  onAuthStateChanged, 
+  updateProfile 
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+import { 
+  getFirestore, 
+  doc, 
+  getDoc, 
+  setDoc, 
+  updateDoc 
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import {
+  getStorage,
+  ref,
+  uploadBytes,
+  getDownloadURL
+} from "https://www.gstatic.com/firebasejs/9.6.1/firebase-storage.js";
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
+const storage = getStorage(app);
 
 document.addEventListener('DOMContentLoaded', () => {
   const userEmailSpan = document.getElementById('userEmail');
@@ -14,52 +31,82 @@ document.addEventListener('DOMContentLoaded', () => {
   const profileNameInput = document.getElementById('profileNameInput');
   const saveProfileBtn = document.getElementById('saveProfileBtn');
 
-  let userDocRef = null;
+  let userRef = null;
+  let newImageFile = null;
 
   onAuthStateChanged(auth, async (user) => {
-    if (user && user.email) {
-      userEmailSpan.textContent = user.email;
-      userEmailSpan.style.display = 'inline';
-
-      // ดึงข้อมูลโปรไฟล์จาก Firestore
-      const q = query(collection(db, 'users'), where('email', '==', user.email));
-      const querySnapshot = await getDocs(q);
-      if (!querySnapshot.empty) {
-        const data = querySnapshot.docs[0].data();
-        userDocRef = querySnapshot.docs[0].ref;
-        profileImg.src = data.photoURL || '../pic/placeholder.png';
-        profileNameInput.value = data.displayName || '';
-      } else {
-        profileImg.src = '../pic/placeholder.png';
-        profileNameInput.value = '';
-      }
-    } else {
-      userEmailSpan.textContent = '-';
+    if (!user) {
       window.location.href = 'login.html';
+      return;
     }
+
+    userEmailSpan.textContent = user.email;
+    userEmailSpan.style.display = 'inline';
+
+    userRef = doc(db, 'users', user.uid);
+    let userSnap = await getDoc(userRef);
+
+    if (!userSnap.exists()) {
+      await setDoc(userRef, {
+        email: user.email,
+        displayName: user.displayName || '',
+        photoURL: user.photoURL || '',
+        createdAt: new Date().toISOString()
+      });
+      userSnap = await getDoc(userRef);
+    }
+
+    const data = userSnap.data();
+    profileImg.src = data.photoURL || '../pic/placeholder.png';
+    profileNameInput.value = data.displayName || '';
   });
 
-  profileImgInput.addEventListener('change', function(e) {
+  // 📷 เมื่อเลือกภาพใหม่
+  profileImgInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+      newImageFile = file;
       const reader = new FileReader();
-      reader.onload = function(evt) {
-        profileImg.src = evt.target.result;
-        profileImg.dataset.base64 = evt.target.result;
+      reader.onload = (evt) => {
+        profileImg.src = evt.target.result; // แสดง preview เท่านั้น
       };
       reader.readAsDataURL(file);
     }
   });
 
+  // 💾 ปุ่มบันทึก
   saveProfileBtn.addEventListener('click', async () => {
-    if (!userDocRef) return;
+    const user = auth.currentUser;
+    if (!user || !userRef) return;
+
     const newName = profileNameInput.value.trim();
-    const newPhoto = profileImg.dataset.base64 || profileImg.src;
-    await updateDoc(userDocRef, {
-      displayName: newName,
-      photoURL: newPhoto
-    });
-    alert('บันทึกโปรไฟล์เรียบร้อยแล้ว!');
-    window.location.href = 'myprofile.html';
+    let photoURL = profileImg.src;
+
+    try {
+      // ✅ ถ้ามีไฟล์ใหม่ → อัปโหลดไป Storage ก่อน
+      if (newImageFile) {
+        const imgRef = ref(storage, `profiles/${user.uid}/${newImageFile.name}`);
+        await uploadBytes(imgRef, newImageFile);
+        photoURL = await getDownloadURL(imgRef);
+      }
+
+      // ✅ อัปเดต Firestore
+      await updateDoc(userRef, {
+        displayName: newName,
+        photoURL: photoURL
+      });
+
+      // ✅ อัปเดต Firebase Auth
+      await updateProfile(user, {
+        displayName: newName,
+        photoURL: photoURL
+      });
+
+      alert('✅ บันทึกโปรไฟล์เรียบร้อยแล้ว!');
+      window.location.href = 'myprofile.html';
+    } catch (err) {
+      console.error('Error updating profile:', err);
+      alert('❌ ไม่สามารถบันทึกข้อมูลได้: ' + err.message);
+    }
   });
 });

@@ -11,161 +11,196 @@ const db = getFirestore(app);
 
 document.addEventListener('DOMContentLoaded', () => {
   const userEmailSpan   = document.getElementById('userEmail');
-
-  // โครงใหม่ (2 กล่อง)
   const purchasedListEl = document.getElementById('mysheetPurchased');
   const uploadedListEl  = document.getElementById('mysheetUploaded');
   const noPurchasedEl   = document.getElementById('noPurchased');
   const noUploadedEl    = document.getElementById('noUploaded');
-
-  // โครงเก่า (กล่องเดียว)
-  const singleListEl    = document.getElementById('mysheetList');
-  const noSheetMsgEl    = document.getElementById('noSheetMsg');
-
   const sheetLoading    = document.getElementById('sheetLoading');
 
-  // ถ้าไม่พบกล่องใหม่ครบทั้ง 2 อัน ให้ถือว่าใช้โครงเก่า
-  const useSingleLayout = !(purchasedListEl && uploadedListEl);
+  /* =============== 🕒 SYSTEM CONFIG =============== */
+  const OTP_DELAY_MS = 3 * 60 * 1000; // 3 นาที
+  let otpCooldown = {}; // เก็บเวลาที่ส่งล่าสุด: { fileId: timestamp }
 
-  if (useSingleLayout) {
-    console.warn('[mysheet] Using single-list layout (mysheetList). Consider updating HTML to have mysheetPurchased/mysheetUploaded.');
-  }
+  /* ---------- Helper ฟังก์ชัน ---------- */
+  const canRequestOTP = (fileId) => {
+    const last = otpCooldown[fileId];
+    return !last || (Date.now() - last) > OTP_DELAY_MS;
+  };
 
-  const renderCard = (data) => {
+  const startCooldown = (fileId, btn, counterEl) => {
+    otpCooldown[fileId] = Date.now();
+    let remain = 180;
+    btn.disabled = true;
+
+    const updateText = () => {
+      const min = Math.floor(remain / 60);
+      const sec = remain % 60;
+      counterEl.textContent = `ขอรหัสใหม่ได้ใน ${min}:${sec.toString().padStart(2, '0')} นาที`;
+    };
+    updateText();
+
+    const timer = setInterval(() => {
+      remain--;
+      updateText();
+      if (remain <= 0) {
+        clearInterval(timer);
+        btn.disabled = false;
+        counterEl.textContent = '';
+        btn.textContent = 'ขอรหัสอีกครั้ง';
+      }
+    }, 1000);
+  };
+
+  const hideSpinner = () => { if (sheetLoading) sheetLoading.style.display = 'none'; };
+
+  /* =============== 🧾 RENDER CARD =============== */
+  const renderCard = (data, fileId, userEmail) => {
     const card = document.createElement('div');
     card.className = 'sheet-card';
     const coverSrc = data.coverUrl || data.coverBase64 || '../pic/placeholder.png';
+    const tag = `${data.type || 'ทั่วไป'} | เทอม ${data.semester || '-'} / ${data.year || '-'}`;
+    const author = data.author || userEmail;
+
     card.innerHTML = `
+      <div class="sheet-tag">${tag}</div>
       <div style="display:flex;gap:12px;align-items:center;">
-        <img class="cover" src="${coverSrc}" alt="cover" style="width:64px;height:64px;border-radius:8px;object-fit:cover;background:#ddd">
-        <div>
-          <div class="info"><b>${data.sheetName || ''}</b></div>
-          <div class="info">ราคา: ${data.price || ''} บาท</div>
-          <div class="info">วิชา: ${data.subjectCode || ''}</div>
-          <div class="info">สาขา: ${data.major || ''}</div>
-          <div class="info">คณะ: ${data.faculty || ''}</div>
+        <img class="cover" src="${coverSrc}" alt="cover" style="width:80px;height:80px;border-radius:8px;object-fit:cover;background:#ddd">
+        <div style="flex:1;text-align:left;">
+          <div><b>${data.sheetName || ''}</b></div>
+          <div>รหัสวิชา: ${data.subjectCode || '-'}</div>
+          <div>คณะ: ${data.faculty || '-'}</div>
+          <div>ผู้จัดทำ: ${author}</div>
         </div>
+      </div>
+
+      <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="open-btn btn-primary" data-id="${fileId}">ขอรหัส OTP</button>
+        <button class="resend-btn btn-outline" data-id="${fileId}" disabled>ขอรหัสอีกครั้ง</button>
+      </div>
+
+      <div class="otp-box" data-id="${fileId}" style="margin-top:10px;">
+        <input type="text" class="otp-input" placeholder="กรอกรหัส OTP ที่ได้รับ" maxlength="6"
+          style="padding:8px;border:1px solid #ccc;border-radius:6px;width:100%;text-align:center;font-size:16px;">
+        <div class="otp-timer" style="margin-top:6px;color:#6a1b9a;font-size:14px;"></div>
       </div>
     `;
     return card;
   };
 
-  const hideSpinner = () => { if (sheetLoading) sheetLoading.style.display = 'none'; };
-
+  /* =============== 👤 LOAD SHEETS =============== */
   onAuthStateChanged(auth, async (user) => {
-    try {
-      if (!user || !user.email) {
-        if (userEmailSpan) userEmailSpan.textContent = '-';
-        window.location.href = 'login.html';
-        return;
-      }
-      if (userEmailSpan) {
-        userEmailSpan.textContent = user.email;
-        userEmailSpan.style.display = 'inline';
-      }
-      if (sheetLoading) sheetLoading.style.display = 'flex';
+    if (!user) return window.location.href = 'login.html';
+    userEmailSpan.textContent = user.email;
+    sheetLoading.style.display = 'flex';
 
-      // เคลียร์ UI แบบปลอดภัย
-      if (useSingleLayout) {
-        if (singleListEl) singleListEl.innerHTML = '';
-        if (noSheetMsgEl) noSheetMsgEl.style.display = 'none';
-      } else {
-        if (purchasedListEl) purchasedListEl.innerHTML = '';
-        if (uploadedListEl)  uploadedListEl.innerHTML  = '';
-        if (noPurchasedEl)   noPurchasedEl.style.display = 'none';
-        if (noUploadedEl)    noUploadedEl.style.display  = 'none';
+    const entQ = query(collection(db, 'entitlements'), where('userId', '==', user.uid));
+    const entSnap = await getDocs(entQ);
+    purchasedListEl.innerHTML = '';
+    uploadedListEl.innerHTML = '';
+
+    if (!entSnap.empty) {
+      for (const d of entSnap.docs) {
+        const fileId = d.data().fileId;
+        const sSnap = await getDoc(doc(db, 'sheets', fileId));
+        if (!sSnap.exists()) continue;
+        const sheetData = sSnap.data();
+        purchasedListEl.appendChild(renderCard(sheetData, fileId, user.email));
       }
+    } else {
+      noPurchasedEl.style.display = 'block';
+    }
 
-      // ---------- 1) ชีทที่ซื้อ (entitlements) ----------
-      const entQ = query(collection(db, 'entitlements'), where('userId', '==', user.uid));
-      const entSnap = await getDocs(entQ);
+    hideSpinner();
+  });
 
-      let purchasedCount = 0;
-      if (!entSnap.empty) {
-        const fileIds = entSnap.docs.map(d => (d.data() || {}).fileId).filter(Boolean);
-        const results = await Promise.all(
-          fileIds.map(fid =>
-            getDoc(doc(db, 'sheets', fid))
-              .then(s => s.exists() ? s.data() : null)
-              .catch(() => null)
-          )
-        );
-        results.forEach(d => {
-          if (!d) return;
-          purchasedCount++;
-          if (useSingleLayout) {
-            if (singleListEl && !singleListEl.querySelector('[data-sec="purchased"]')) {
-              const h = document.createElement('div');
-              h.dataset.sec = 'purchased';
-              h.style.gridColumn = '1/-1';
-              h.style.fontWeight = '700';
-              h.style.color = '#5b3cc4';
-              h.style.margin = '12px 0 4px';
-              h.textContent = 'Sheets I Purchased';
-              singleListEl.appendChild(h);
-            }
-            singleListEl && singleListEl.appendChild(renderCard(d));
-          } else {
-            purchasedListEl && purchasedListEl.appendChild(renderCard(d));
-          }
+  /* =============== ⚡ EVENT LISTENER =============== */
+  document.addEventListener('click', async (e) => {
+    const user = auth.currentUser;
+    if (!user) return alert('กรุณาเข้าสู่ระบบก่อน');
+
+    // --- ปุ่มเปิดชีท ---
+    if (e.target.classList.contains('open-btn')) {
+      const btn = e.target;
+      const fileId = btn.dataset.id;
+      const token = await user.getIdToken();
+      const resendBtn = btn.parentElement.querySelector('.resend-btn');
+      const otpInput = document.querySelector(`.otp-box[data-id="${fileId}"] .otp-input`);
+      const otpTimer = document.querySelector(`.otp-box[data-id="${fileId}"] .otp-timer`);
+
+      try {
+        if (!canRequestOTP(fileId))
+          return alert('กรุณารอ 3 นาที ก่อนขอรหัสใหม่');
+
+        // ✅ เรียก Cloud Function ส่ง OTP
+        const res = await fetch('https://us-central1-project-sharesheet2.cloudfunctions.net/rotate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': 'myadmin'
+          },
+          body: JSON.stringify({ fileId, toEmail: user.email })
         });
-      }
-      if (!useSingleLayout && purchasedCount === 0 && noPurchasedEl) {
-        noPurchasedEl.style.display = 'block';
-      }
 
-      // ---------- 2) ชีทที่อัปโหลด ----------
-      const upQ = query(collection(db, 'sheets'), where('user', '==', user.email));
-      const upSnap = await getDocs(upQ);
+        if (!res.ok) throw new Error(await res.text());
+        alert('📩 ส่งรหัส OTP ไปยังอีเมลของคุณแล้ว!');
+        resendBtn.disabled = true;
+        startCooldown(fileId, resendBtn, otpTimer);
 
-      let uploadedCount = 0;
-      if (!upSnap.empty) {
-        upSnap.forEach(docSnap => {
-          uploadedCount++;
-          const data = docSnap.data();
-          if (useSingleLayout) {
-            if (singleListEl && !singleListEl.querySelector('[data-sec="uploaded"]')) {
-              const h = document.createElement('div');
-              h.dataset.sec = 'uploaded';
-              h.style.gridColumn = '1/-1';
-              h.style.fontWeight = '700';
-              h.style.color = '#5b3cc4';
-              h.style.margin = '16px 0 4px';
-              h.textContent = 'Sheets I Uploaded';
-              singleListEl.appendChild(h);
-            }
-            singleListEl && singleListEl.appendChild(renderCard(data));
-          } else {
-            uploadedListEl && uploadedListEl.appendChild(renderCard(data));
-          }
+      } catch (err) {
+        alert('❌ เกิดข้อผิดพลาด: ' + err.message);
+      }
+    }
+
+    // --- ปุ่มขอรหัสอีกครั้ง ---
+    if (e.target.classList.contains('resend-btn')) {
+      const btn = e.target;
+      const fileId = btn.dataset.id;
+      const otpTimer = document.querySelector(`.otp-box[data-id="${fileId}"] .otp-timer`);
+      if (!canRequestOTP(fileId))
+        return alert('โปรดรอ 3 นาทีเพื่อขอรหัสใหม่อีกครั้ง');
+
+      try {
+        const user = auth.currentUser;
+        const res = await fetch('https://us-central1-project-sharesheet2.cloudfunctions.net/rotate', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-key': 'myadmin'
+          },
+          body: JSON.stringify({ fileId, toEmail: user.email })
         });
+        if (!res.ok) throw new Error(await res.text());
+        alert('📧 ระบบได้ส่งรหัสใหม่ให้แล้ว');
+        startCooldown(fileId, btn, otpTimer);
+      } catch (err) {
+        alert('เกิดข้อผิดพลาด: ' + err.message);
       }
-      if (!useSingleLayout && uploadedCount === 0 && noUploadedEl) {
-        noUploadedEl.style.display = 'block';
-      }
+    }
 
-      // ---------- กรณีไม่มีอะไรเลย (layout เก่า) ----------
-      if (useSingleLayout) {
-        const hasAny = (purchasedCount + uploadedCount) > 0;
-        if (!hasAny && noSheetMsgEl) {
-          noSheetMsgEl.style.display = 'block';
-          noSheetMsgEl.textContent = 'ยังไม่มีชีทที่คุณซื้อหรืออัปโหลด';
+    // --- เมื่อกรอกรหัส OTP ครบ 6 หลัก ---
+    if (e.target.classList.contains('otp-input')) {
+      e.target.addEventListener('input', async (ev) => {
+        const code = ev.target.value.trim();
+        const fileId = ev.target.closest('.otp-box').dataset.id;
+        if (code.length !== 6) return;
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const verifyRes = await fetch('https://us-central1-project-sharesheet2.cloudfunctions.net/verify', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': 'Bearer ' + token
+            },
+            body: JSON.stringify({ fileId, code })
+          });
+          if (!verifyRes.ok) throw new Error(await verifyRes.text());
+          alert('✅ ยืนยันสำเร็จ! กำลังเปิดชีท...');
+          window.location.href = `viewer.html?id=${encodeURIComponent(fileId)}`;
+        } catch (err) {
+          alert('❌ รหัสไม่ถูกต้องหรือหมดอายุ');
+          ev.target.value = '';
         }
-      }
-
-    } catch (err) {
-      console.error('[mysheet] error:', err);
-      if (useSingleLayout) {
-        if (noSheetMsgEl) {
-          noSheetMsgEl.style.display = 'block';
-          noSheetMsgEl.textContent = 'เกิดข้อผิดพลาดในการโหลดรายการ';
-        }
-      } else {
-        if (noPurchasedEl) { noPurchasedEl.style.display = 'block'; noPurchasedEl.textContent = 'โหลดไม่สำเร็จ'; }
-        if (noUploadedEl)  { noUploadedEl.style.display  = 'block'; noUploadedEl.textContent  = 'โหลดไม่สำเร็จ'; }
-      }
-    } finally {
-      hideSpinner();
+      });
     }
   });
 });
