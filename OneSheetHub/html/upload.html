@@ -40,18 +40,20 @@
         <div class="upload-right">
           <div class="upload-grid" style="display: flex; flex-direction: column; align-items: flex-start; gap: 18px; width: 100%; max-width: 480px; margin: 0 auto;">
             <div class="form-group"><select id="year" required><option value="">เลือกปีการศึกษา</option><option value="2565">2565</option><option value="2566">2566</option><option value="2567">2567</option><option value="2568">2568</option></select></div>
+            <div class="form-group"><select id="semester" required><option value="">เลือกภาคเรียน</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
             <div class="form-group"><select id="faculty" required><option value="">เลือกคณะ</option><option value="วิศวกรรมศาสตร์">วิศวกรรมศาสตร์</option><option value="บริหารธุรกิจ">บริหารธุรกิจ</option><option value="นิติศาสตร์">นิติศาสตร์</option></select></div>
             <div class="form-group"><select id="major" required><option value="">เลือกสาขา</option><option value="วิศวกรรมคอมพิวเตอร์">วิศวกรรมคอมพิวเตอร์</option><option value="การตลาด">การตลาด</option><option value="กฎหมายธุรกิจ">กฎหมายธุรกิจ</option></select></div>
             <div class="form-group"><input type="text" id="sheetName" required placeholder="ชื่อชีท"></div>
-            <div class="form-group"><select id="subjectCode" required><option value="">เลือกรหัสวิชา</option><option value="COMP101">COMP101</option><option value="MKT201">MKT201</option><option value="LAW301">LAW301</option></select></div>
+            <div class="form-group"><input type="text" id="subjectCode" required placeholder="รหัสวิชา"></div>
             <div class="form-group"><input type="text" id="author" required placeholder="ผู้จัดทำ"></div>
-            <div class="form-group"><select id="semester" required><option value="">เลือกภาคเรียน</option><option value="1">1</option><option value="2">2</option><option value="3">3</option></select></div>
             <div class="form-group"><input type="text" id="description" required placeholder="รายละเอียด"></div>
             <div class="form-group"><input type="number" id="price" required placeholder="ราคา"></div>
-            <div class="form-group" style="text-align:center;">
+            <div class="form-group" style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="font-weight:600;color:#333;">หน้าปก</div>
               <input type="file" id="coverFile" accept="image/*" style="margin-left:8px;">
             </div>
-            <div class="form-group" style="text-align:center;">
+            <div class="form-group" style="text-align:center;display:flex;flex-direction:column;align-items:center;gap:8px;">
+              <div style="font-weight:600;color:#333;">ไฟล์ที่จะอัพโหลด (รับเฉพาะ PDF)</div>
               <input type="file" id="sheetFile" accept="application/pdf" style="margin-left:8px;">
             </div>
             <div style="width:100%;text-align:center;margin-top:24px;">
