@@ -16,7 +16,7 @@ loginForm.addEventListener('submit', async (e) => {
   // ใช้ email ในการเข้าสู่ระบบ
   try {
     await signInWithEmailAndPassword(auth, emailOrUser, password);
-    window.location.assign('/html/viewsheet.html'); // เปลี่ยนเส้นทางไปหน้า home หลัง login
+    window.location.assign('/html/home.html'); // เปลี่ยนเส้นทางไปหน้า home หลัง login
   } catch (error) {
     loginError.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
   }
