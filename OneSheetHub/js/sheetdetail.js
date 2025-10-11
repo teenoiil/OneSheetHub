@@ -44,17 +44,17 @@ async function loadSheetDetail() {
       </div>
     </div>
     <div class="sheet-detail-right">
-      <div class="code"><strong>รหัสวิชา:</strong> (รหัสวิชา) ${data.subjectCode || '-'}</div>
+      <div class="code"><strong>รหัสวิชา:</strong> ${data.subjectCode || '-'}</div>
       <div class="info">
-        <strong>ชื่อชีท:</strong> (ชื่อชีท) ${data.sheetName || '-'}<br>
-        <strong>รายละเอียด:</strong> (รายละเอียด) ${data.description || '-'}<br>
-        <strong>คณะ:</strong> (คณะ) ${data.faculty || '-'}<br>
-        <strong>สาขา:</strong> (สาขา) ${data.major || '-'}<br>
-        <strong>เทอม:</strong> (เทอม) ${data.semester || '-'}<br> 
-        <strong>ปีการศึกษา:</strong> (ปีการศึกษา) ${data.year || '-'}<br>
+        <strong>ชื่อชีท:</strong> ${data.sheetName || '-'}<br>
+        <strong>รายละเอียด:</strong> ${data.description || '-'}<br>
+        <strong>คณะ:</strong> ${data.faculty || '-'}<br>
+        <strong>สาขา:</strong> ${data.major || '-'}<br>
+        <strong>เทอม:</strong> ${data.semester || '-'}<br> 
+        <strong>ปีการศึกษา:</strong> ${data.year || '-'}<br>
       </div>
       <div class="actions">
-        <button>ซื้อชีท</button> 
+        <button>ซื้อชีท</button>   
       </div>
     </div>
   `;
