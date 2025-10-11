@@ -87,7 +87,7 @@ async function loadSheets() {
           <div><strong>เทอม:</strong> ${data.semester || '-'} | <strong>ปี:</strong> ${data.year || '-'}</div>
           <div><strong>ชื่อชีท:</strong> ${data.sheetName || '-'}</div>
           <div><strong>ผู้จัดทำ:</strong> ${data.author || '-'}</div>
-          <div><strong>รายละเอียด:</strong> ${data.description || '-'}</div>
+        
           <div><strong>ราคา:</strong> ${data.price || '0'}฿</div>
         </div>
         <div class="actions" style="margin-top:8px;display:flex;gap:8px;">

@@ -52,10 +52,6 @@ async function loadSheetDetail() {
         <strong>สาขา:</strong> ${data.major || '-'}<br>
         <strong>เทอม:</strong> ${data.semester || '-'}<br> 
         <strong>ปีการศึกษา:</strong> ${data.year || '-'}<br>
-      </div>
-      <div class="actions">
-        <button>ซื้อชีท</button>   
-      </div>
     </div>
   `;
 }
