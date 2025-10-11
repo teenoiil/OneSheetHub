@@ -38,13 +38,9 @@ async function loadSheetDetail() {
   const data = docSnap.data();
   container.innerHTML = `
     <div class="sheet-detail-left">
-      <img src="${data.coverUrl || '../img/no-image.png'}" alt="cover">
+      <img src="${data.coverUrl || '../pic/placeholder.png'}" alt="cover">
       <div style="font-size:20px;margin-top:12px;">
-        <strong>จำนวนหน้า:</strong> (${data.pageCount !== undefined ? 'จำนวนหน้า' : '-'}) ${data.pageCount || '-'}<br>
-        <strong>ราคา:</strong> (ราคา) ${data.price || '-'} บาท
-      </div>
-      <div style="font-size:18px;margin-top:12px;">
-        <strong>คะแนนรีวิว:</strong> (คะแนนรีวิว) ${data.reviewScore || '-'} / 5
+        <strong>ราคา:</strong>  ${data.price || '-'} บาท
       </div>
     </div>
     <div class="sheet-detail-right">
@@ -54,7 +50,7 @@ async function loadSheetDetail() {
         <strong>รายละเอียด:</strong> (รายละเอียด) ${data.description || '-'}<br>
         <strong>คณะ:</strong> (คณะ) ${data.faculty || '-'}<br>
         <strong>สาขา:</strong> (สาขา) ${data.major || '-'}<br>
-        <strong>เทอม:</strong> (เทอม) ${data.semester || '-'}<br>
+        <strong>เทอม:</strong> (เทอม) ${data.semester || '-'}<br> 
         <strong>ปีการศึกษา:</strong> (ปีการศึกษา) ${data.year || '-'}<br>
       </div>
       <div class="actions">
