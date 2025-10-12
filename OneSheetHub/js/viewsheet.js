@@ -1,8 +1,8 @@
-// viewsheet.js — โหลดรายการชีท + ระบบตะกร้า (ไม่มี OTP)
+// viewsheet.js — โหลดรายการชีท + ระบบตะกร้า (กันซื้อซ้ำ)
 import firebaseConfig from './firebaseConfig.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
 /* -------------------- INIT -------------------- */
 const app = initializeApp(firebaseConfig);
@@ -14,13 +14,21 @@ const userEmailSpan = document.getElementById('userEmail');
 const sheetList = document.getElementById('sheetList');
 const sheetLoading = document.getElementById('sheetLoading');
 const searchBtn = document.getElementById('searchBtn');
-
 const $ = (id) => document.getElementById(id);
 
 /* ----------------- AUTH GUARD ----------------- */
-onAuthStateChanged(auth, (user) => {
-  if (user && userEmailSpan) userEmailSpan.textContent = user.email;
-  else window.location.href = 'login.html';
+let purchasedSheetIds = []; // ✅ เก็บ ID ชีทที่ผู้ใช้ซื้อแล้ว
+
+onAuthStateChanged(auth, async (user) => {
+  if (!user) return window.location.href = 'login.html';
+  userEmailSpan.textContent = user.email;
+
+  // ✅ โหลดสิทธิ์ที่ผู้ใช้เคยซื้อไว้
+  const entQ = query(collection(db, 'entitlements'), where('userId', '==', user.uid));
+  const entSnap = await getDocs(entQ);
+  purchasedSheetIds = entSnap.docs.map(d => d.data().fileId);
+  
+  loadSheets();
 });
 
 /* ----------------- HELPERS -------------------- */
@@ -29,10 +37,7 @@ function showLoading(show) {
 }
 function emptyState(msg) {
   if (!sheetList) return;
-  sheetList.innerHTML = `
-    <div style="width:100%;text-align:center;color:#777;padding:24px 0;">
-      ${msg}
-    </div>`;
+  sheetList.innerHTML = `<div style="width:100%;text-align:center;color:#777;padding:24px 0;">${msg}</div>`;
 }
 
 /* ----------------- LOAD SHEETS ---------------- */
@@ -55,7 +60,6 @@ async function loadSheets() {
 
     qs.forEach((docSnap) => {
       const data = docSnap.data() || {};
-
       let match = true;
       if (searchText) {
         const all = `${data.sheetName || ''} ${data.subjectCode || ''} ${data.author || ''} ${data.description || ''}`.toLowerCase();
@@ -69,6 +73,8 @@ async function loadSheets() {
       if (!match) return;
 
       shown++;
+      const fileId = docSnap.id;
+      const alreadyBought = purchasedSheetIds.includes(fileId); // ✅ ตรวจว่าซื้อแล้วหรือยัง
 
       const card = document.createElement('div');
       card.className = 'sheet-card';
@@ -76,10 +82,8 @@ async function loadSheets() {
 
       card.innerHTML = `
         <div style="width:100%;display:flex;justify-content:center;">
-          <img class="cover"
-               src="${coverSrc}"
-               alt="cover"
-               style="margin-bottom:8px;width:200px;height:200px;object-fit:cover;border-radius:8px;background:#ddd">
+          <img class="cover" src="${coverSrc}" alt="cover"
+            style="margin-bottom:8px;width:200px;height:200px;object-fit:cover;border-radius:8px;background:#ddd">
         </div>
         <div class="info" style="font-family:'Kanit',sans-serif;text-align:left;color:#333;">
           <div><strong>รหัสวิชา:</strong> ${data.subjectCode || '-'}</div>
@@ -87,17 +91,16 @@ async function loadSheets() {
           <div><strong>เทอม:</strong> ${data.semester || '-'} | <strong>ปี:</strong> ${data.year || '-'}</div>
           <div><strong>ชื่อชีท:</strong> ${data.sheetName || '-'}</div>
           <div><strong>ผู้จัดทำ:</strong> ${data.author || '-'}</div>
-        
           <div><strong>ราคา:</strong> ${data.price || '0'}฿</div>
         </div>
         <div class="actions" style="margin-top:8px;display:flex;gap:8px;">
-          <button class="detail-btn btn"
-            data-id="${docSnap.id}">เพิ่มเติม</button>
-          <button class="buy-btn btn"
-            data-id="${docSnap.id}"
-            data-name="${data.sheetName || '-'}"
-            data-price="${data.price || '0'}"
-            data-img="${coverSrc}">เพิ่มลงตะกร้า</button>
+          <button class="detail-btn btn" data-id="${fileId}">เพิ่มเติม</button>
+          ${
+            alreadyBought
+              ? `<button class="btn btn-disabled" disabled style="background:#ccc;color:#555;">✅ มีแล้ว</button>`
+              : `<button class="buy-btn btn" data-id="${fileId}" data-name="${data.sheetName || '-'}"
+                   data-price="${data.price || '0'}" data-img="${coverSrc}">เพิ่มลงตะกร้า</button>`
+          }
         </div>
       `;
       sheetList.appendChild(card);
@@ -121,17 +124,12 @@ async function loadSheets() {
   }
 }
 
-/* ------------- SEARCH/ FILTER UX -------------- */
+/* ----------------- SEARCH UX ----------------- */
 if (searchBtn) searchBtn.addEventListener('click', loadSheets);
-$('searchInput')?.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') loadSheets();
-});
-
-/* ----------------- FIRST LOAD ----------------- */
-loadSheets();
+$('searchInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadSheets(); });
 
 /* =====================================================
-   🛒 ระบบตะกร้า (คงตำแหน่งเดิมแต่ยกปุ่มขึ้นเล็กน้อย)
+   🛒 ระบบตะกร้า + ตรวจสอบการซื้อซ้ำ
    ===================================================== */
 const cartToggle = document.getElementById('cartToggle');
 const cartPanel = document.getElementById('cartPanel');
@@ -148,7 +146,6 @@ closeCart?.addEventListener('click', closeCartPanel);
 
 function renderCart() {
   if (!cartItems) return;
-
   if (cart.length === 0) {
     cartItems.innerHTML = '<p style="color:#777;text-align:center;">ยังไม่มีชีทในตะกร้า</p>';
     cartTotal.textContent = '0฿';
@@ -165,9 +162,9 @@ function renderCart() {
           <strong>${item.name}</strong><br>
           <small>ราคา: ${item.price}฿</small>
         </div>
-        <button class="remove-item" data-id="${item.id}" style="background:none;border:none;color:#e57373;font-size:18px;cursor:pointer;">🗑</button>
-      </div>
-    `;
+        <button class="remove-item" data-id="${item.id}"
+          style="background:none;border:none;color:#e57373;font-size:18px;cursor:pointer;">🗑</button>
+      </div>`;
   }).join('');
 
   cartTotal.textContent = total + '฿';
@@ -183,13 +180,19 @@ cartItems?.addEventListener('click', (e) => {
 
 document.addEventListener('click', (e) => {
   if (!e.target.classList.contains('buy-btn')) return;
-
   const btn = e.target;
   const id = btn.dataset.id;
   const name = btn.dataset.name;
   const price = btn.dataset.price || '0';
   const img = btn.dataset.img;
 
+  // ✅ ตรวจสอบว่าผู้ใช้มีชีทนี้อยู่แล้วหรือไม่
+  if (purchasedSheetIds.includes(id)) {
+    alert(`📘 คุณมีชีท "${name}" อยู่แล้ว`);
+    return;
+  }
+
+  // ✅ ตรวจว่าซ้ำในตะกร้าไหม
   if (cart.some(item => item.id === id)) {
     alert('ชีทนี้มีอยู่ในตะกร้าแล้ว');
     openCart();
@@ -202,10 +205,32 @@ document.addEventListener('click', (e) => {
   alert('✅ เพิ่มชีทลงในตะกร้าเรียบร้อยแล้ว');
 });
 
-checkoutBtn?.addEventListener('click', () => {
+/* ✅ ปุ่มชำระเงิน — บันทึกลง Firestore ก่อน redirect */
+checkoutBtn?.addEventListener('click', async () => {
   if (cart.length === 0) return alert('ยังไม่มีชีทในตะกร้า');
-  alert('✅ ชำระเงินเรียบร้อยแล้ว! กำลังไปหน้าชีทของฉัน...');
-  cart = [];
-  renderCart();
-  window.location.href = 'mysheet.html';
+
+  const user = auth.currentUser;
+  if (!user) return alert('กรุณาเข้าสู่ระบบก่อน');
+
+  try {
+    for (const item of cart) {
+      // ✅ เช็กอีกชั้น กันซื้อซ้ำ
+      if (purchasedSheetIds.includes(item.id)) continue;
+
+      await addDoc(collection(db, 'entitlements'), {
+        userId: user.uid,
+        fileId: item.id,
+        purchaseDate: new Date().toISOString(),
+        grantSource: 'purchase'
+      });
+    }
+
+    alert('✅ ชำระเงินเรียบร้อยแล้ว! กำลังไปหน้าชีทของฉัน...');
+    cart = [];
+    renderCart();
+    window.location.href = 'mysheet.html';
+  } catch (err) {
+    console.error('❌ เกิดข้อผิดพลาดในการบันทึกสิทธิ์:', err);
+    alert('❌ บันทึกสิทธิ์ไม่สำเร็จ กรุณาลองใหม่อีกครั้ง');
+  }
 });
