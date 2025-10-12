@@ -21,7 +21,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const userEmailSpan = document.getElementById('userEmail');
   const profileImg = document.getElementById('profileImg');
   const profileName = document.getElementById('profileName');
-  const profileCreated = document.getElementById('profileCreated');
   const profileEmail = document.getElementById('profileEmail');
 
   onAuthStateChanged(auth, async (user) => {
@@ -52,9 +51,6 @@ document.addEventListener('DOMContentLoaded', () => {
     // แสดงข้อมูล
     profileImg.src = data.photoURL || '../pic/placeholder.png';
     profileName.textContent = data.displayName || user.displayName || '-';
-    profileCreated.textContent = data.createdAt
-      ? new Date(data.createdAt).toLocaleString('th-TH')
-      : '-';
     profileEmail.textContent = data.email || user.email;
   });
 });
