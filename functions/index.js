@@ -20,7 +20,6 @@ const MAIL_USER = defineSecret('MAIL_USER');
 const MAIL_PASS = defineSecret('MAIL_PASS');
 
 const CODE_TTL_MIN = 10;
-const SIGNED_URL_TTL_MIN = 5;
 
 function setCors(res) {
   res.set('Access-Control-Allow-Origin', '*');
@@ -115,7 +114,6 @@ export const verify = onRequest({ secrets: [MAIL_USER] }, async (req, res) => {
       });
     });
 
-    // ให้ ok กลับไปอย่างเดียว (ฝั่ง UI จะ redirect ไป viewer.html)
     return res.json({ ok: true });
   } catch (e) {
     console.error('verify error:', e);
@@ -124,52 +122,13 @@ export const verify = onRequest({ secrets: [MAIL_USER] }, async (req, res) => {
   }
 });
 
-/* ---------- geturl (ยังคงไว้เผื่อใช้ ที่ต้องการ signed URL) ---------- */
-export const geturl = onRequest({}, async (req, res) => {
-  setCors(res);
-  if (req.method === 'OPTIONS') return res.status(204).end();
-  try {
-    if (req.method !== 'POST') return res.status(405).send('Method Not Allowed');
-
-    const authHeader = req.headers.authorization || '';
-    const [, token] = authHeader.split(' ');
-    if (!token) return res.status(401).send('Missing token');
-
-    const decoded = await getAuth().verifyIdToken(token);
-    const uid = decoded.uid;
-
-    const { fileId } = req.body || {};
-    if (!fileId) return res.status(400).send('Missing fileId');
-
-    const entitlementRef = db.collection('entitlements').doc(`${uid}__${fileId}`);
-    const entSnap = await entitlementRef.get();
-    if (!entSnap.exists) return res.status(403).send('คุณไม่มีสิทธิ์ดูชีทนี้');
-
-    const sheetSnap = await db.collection('sheets').doc(fileId).get();
-    const { storagePath } = sheetSnap.data() || {};
-    if (!storagePath) return res.status(500).send('missing storagePath');
-
-    const file = bucket.file(storagePath);
-    const [url] = await file.getSignedUrl({
-      action: 'read',
-      expires: Date.now() + SIGNED_URL_TTL_MIN * 60 * 1000,
-    });
-
-    return res.json({ ok: true, url });
-  } catch (e) {
-    console.error('geturl error:', e);
-    return res.status(500).send('เกิดข้อผิดพลาด');
-  }
-});
-
-/* ---------- streamFile (ใช้ใน viewer.html) ---------- */
+/* ---------- streamFile (จำกัดสิทธิ์ผู้ใช้ที่มี entitlement เท่านั้น) ---------- */
 export const streamFile = onRequest({ maxInstances: 10 }, async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).send('Method Not Allowed');
 
   try {
-    // token
     const authHeader = req.headers.authorization || '';
     const [, token] = authHeader.split(' ');
     if (!token) return res.status(401).send('Missing token');
@@ -177,22 +136,21 @@ export const streamFile = onRequest({ maxInstances: 10 }, async (req, res) => {
     const decoded = await getAuth().verifyIdToken(token);
     const uid = decoded.uid;
 
-    // fileId
     const fileId = (req.query.fileId || '').toString().trim();
     if (!fileId) return res.status(400).send('Missing fileId');
 
-    // ตรวจสิทธิ์
+    // ตรวจสิทธิ์เฉพาะผู้ใช้ที่มี entitlement
     const entitlementRef = db.collection('entitlements').doc(`${uid}__${fileId}`);
     const entSnap = await entitlementRef.get();
     if (!entSnap.exists) return res.status(403).send('คุณไม่มีสิทธิ์ดูไฟล์นี้');
 
-    // หา path
+    // ดึง path จาก collection sheets
     const sheetSnap = await db.collection('sheets').doc(fileId).get();
     if (!sheetSnap.exists) return res.status(404).send('ไม่พบไฟล์');
     const { storagePath } = sheetSnap.data() || {};
     if (!storagePath) return res.status(500).send('missing storagePath');
 
-    // สตรีม PDF
+    // สตรีม PDF ให้ผู้ใช้ที่มีสิทธิ์เท่านั้น
     const file = bucket.file(storagePath);
     const [exists] = await file.exists();
     if (!exists) return res.status(404).send('ไฟล์ไม่อยู่ในบักเก็ต');
