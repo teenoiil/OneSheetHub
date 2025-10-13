@@ -1,0 +1,76 @@
+/* General styles */
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #111;
+  color: #eee;
+  font-family: sans-serif;
+  user-select: none;
+  overflow: hidden;
+}
+
+.toolbar {
+  background: #1c1c1c;
+  padding: 10px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: none;
+}
+
+.btn {
+  padding: 6px 12px;
+  border: none;
+  background: #2e2e2e;
+  color: white;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+#viewerContainer {
+  position: absolute;
+  top: 48px;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: auto;
+  background: #222;
+  display: none;
+  user-select: none;
+}
+
+#viewer .page {
+  margin: 10px auto;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+  background: white;
+  user-select: none;
+}
+
+.message-box {
+  color: #ffb8b8;
+  text-align: center;
+  padding: 2rem;
+  font-size: 1.2em;
+}
+
+.watermark {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.12);
+  font-size: 48px;
+  font-weight: bold;
+  text-align: center;
+  mix-blend-mode: overlay;
+  white-space: pre-wrap;
+  user-select: none;
+}

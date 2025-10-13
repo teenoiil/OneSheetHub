@@ -4,81 +4,10 @@
   <meta charset="UTF-8">
   <title>PDF Viewer | OneSheetHub</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+ 
+  <link rel="stylesheet" href="../css/viewer.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.css" />
-  <style>
-    html, body {
-      margin: 0;
-      height: 100%;
-      background: #111;
-      color: #eee;
-      font-family: sans-serif;
-      user-select: none;
-      overflow: hidden;
-    }
-    .toolbar {
-      background: #1c1c1c;
-      padding: 10px;
-      display: flex;
-      gap: 10px;
-      align-items: center;
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      z-index: 1000;
-      display: none;
-    }
-    .btn {
-      padding: 6px 12px;
-      border: none;
-      background: #2e2e2e;
-      color: white;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    #viewerContainer {
-      position: absolute;
-      top: 48px;
-      bottom: 0;
-      left: 0;
-      right: 0;
-      overflow: auto;
-      background: #222;
-      display: none;
-      user-select: none;
-      -webkit-user-select: none;
-      -moz-user-select: none;
-      -ms-user-select: none;
-    }
-    #viewer .page {
-      margin: 10px auto;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
-      background: white;
-      user-select: none;
-    }
-    .message-box {
-      color: #ffb8b8;
-      text-align: center;
-      padding: 2rem;
-      font-size: 1.2em;
-    }
-    .watermark {
-      position: fixed;
-      inset: 0;
-      z-index: 999;
-      pointer-events: none;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: rgba(255,255,255,0.12);
-      font-size: 48px;
-      font-weight: bold;
-      text-align: center;
-      mix-blend-mode: overlay;
-      white-space: pre-wrap;
-      user-select: none;
-    }
-  </style>
 </head>
 <body>
   <div class="toolbar">
@@ -94,128 +23,11 @@
   <div id="messageBox" class="message-box">⏳ กำลังโหลดระบบ...</div>
   <div class="watermark">ห้ามบันทึก/คัดลอกเอกสาร</div>
 
+ 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf_viewer.min.js"></script>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
-    import firebaseConfig from "../js/firebaseConfig.js";
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const viewerContainer = document.getElementById("viewerContainer");
-    const messageBox = document.getElementById("messageBox");
-    const pageInfo = document.getElementById("pageInfo");
-    const toolbar = document.querySelector(".toolbar");
-    const prevBtn = document.getElementById("prevPage");
-    const nextBtn = document.getElementById("nextPage");
-    const watermark = document.querySelector(".watermark");
-    let pdfViewer;
-
-    const showMessage = (msg) => {
-      toolbar.style.display = "none";
-      viewerContainer.style.display = "none";
-      messageBox.style.display = "block";
-      messageBox.textContent = msg;
-      console.log("💬", msg);
-    };
-
-    const updatePageInfo = () => {
-      if (pdfViewer && pdfViewer.pagesCount) {
-        pageInfo.textContent = `หน้า ${pdfViewer.currentPageNumber} / ${pdfViewer.pagesCount}`;
-      }
-    };
-
-    prevBtn.onclick = () => {
-      if (pdfViewer && pdfViewer.currentPageNumber > 1) {
-        pdfViewer.currentPageNumber--;
-        updatePageInfo();
-      }
-    };
-    nextBtn.onclick = () => {
-      if (pdfViewer && pdfViewer.currentPageNumber < pdfViewer.pagesCount) {
-        pdfViewer.currentPageNumber++;
-        updatePageInfo();
-      }
-    };
-
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return showMessage("⚠️ กรุณาเข้าสู่ระบบก่อน");
-
-      try {
-        const fileId = new URLSearchParams(window.location.search).get("id");
-        if (!fileId) return showMessage("❌ ไม่พบรหัสไฟล์ใน URL");
-
-        showMessage("⏳ กำลังโหลดเอกสาร...");
-
-        const token = await user.getIdToken(true);
-        const streamUrl = `https://us-central1-project-sharesheet2.cloudfunctions.net/streamFile?fileId=${encodeURIComponent(fileId)}`;
-
-        const response = await fetch(streamUrl, { headers: { Authorization: `Bearer ${token}` } });
-        if (!response.ok) throw new Error(`ไม่สามารถโหลดไฟล์ (HTTP ${response.status})`);
-
-        const pdfData = await response.arrayBuffer();
-
-        messageBox.style.display = "none";
-        viewerContainer.style.display = "block";
-        toolbar.style.display = "flex";
-
-        const loadingTask = pdfjsLib.getDocument({ data: pdfData });
-        const pdf = await loadingTask.promise;
-        const eventBus = new pdfjsViewer.EventBus();
-        const linkService = new pdfjsViewer.PDFLinkService({ eventBus });
-
-        pdfViewer = new pdfjsViewer.PDFViewer({ container: viewerContainer, eventBus, linkService });
-        linkService.setViewer(pdfViewer);
-        pdfViewer.setDocument(pdf);
-        linkService.setDocument(pdf, null);
-
-        eventBus.on("pagesinit", () => {
-          pdfViewer.currentScaleValue = "page-width";
-          updatePageInfo();
-        });
-
-        viewerContainer.addEventListener("pagechange", updatePageInfo, true);
-
-        // watermark
-        watermark.textContent = `ห้ามบันทึก/คัดลอก เอกสาร\n${user.email}`;
-
-        console.log("✅ โหลด PDF สำเร็จ:", pdf.numPages, "หน้า");
-
-      } catch (err) {
-        console.error("❌ [PDF Error]:", err);
-        showMessage("เกิดข้อผิดพลาด: " + err.message);
-      }
-    });
-
-    // ==== ป้องกันขั้นสูง ====
-    const forbiddenKeys = ['s','p','c','x','a','u','i'];
-    document.addEventListener('keydown', e => {
-      if (e.ctrlKey && forbiddenKeys.includes(e.key.toLowerCase())) { e.preventDefault(); alert("🚫 คำสั่งถูกป้องกัน"); }
-      if (e.key === 'F12') { e.preventDefault(); alert("🚫 เปิด DevTools ไม่ได้"); }
-    });
-    document.addEventListener('contextmenu', e => e.preventDefault());
-    document.addEventListener('copy', e => e.preventDefault());
-    document.addEventListener('cut', e => e.preventDefault());
-    document.addEventListener('selectstart', e => e.preventDefault());
-    document.addEventListener('dragstart', e => e.preventDefault());
-    document.addEventListener('mousedown', e => { if(e.detail>1) e.preventDefault(); });
-
-    // ป้องกัน drag/drop ไฟล์
-    window.addEventListener('dragover', e => e.preventDefault());
-    window.addEventListener('drop', e => e.preventDefault());
-
-    // ตรวจจับ devtools (optional)
-    let devtoolsOpen = false;
-    const threshold = 160;
-    const checkDevTools = () => {
-      const widthDiff = window.outerWidth - window.innerWidth > threshold;
-      const heightDiff = window.outerHeight - window.innerHeight > threshold;
-      if(widthDiff || heightDiff) { devtoolsOpen = true; location.reload(); }
-    };
-    setInterval(checkDevTools, 1000);
-  </script>
+  
+  <script type="module" src="../js/viewer.js"></script>
 </body>
 </html>
