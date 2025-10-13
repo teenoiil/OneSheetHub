@@ -119,7 +119,7 @@ main {
   color: #333;
   min-width: 220px;
   align-items: center;
-/* จัดกลางฟอร์ม */
+
 .upload-grid {
   display: flex;
   flex-direction: column;

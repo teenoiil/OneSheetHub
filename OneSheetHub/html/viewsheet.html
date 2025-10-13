@@ -6,7 +6,6 @@
   <title>ซื้อชีท | OneSheetHub</title>
   <link rel="stylesheet" href="../css/viewsheet.css" />
   <style>
-    /* ✅ ซ่อนปุ่มตะกร้าเมื่อแทบตะกร้าเปิดอยู่ */
     .cart-panel.open ~ .cart-toggle {
       opacity: 0;
       pointer-events: none;
@@ -22,7 +21,7 @@
 </head>
 
 <body>
-  <!-- 🔝 Navbar -->
+  
   <nav class="navbar">
     <div class="logo">
       <img src="../pic/logo.png" alt="OneSheetHub Logo" height="40" />
@@ -93,9 +92,8 @@
     </div>
   </nav>
 
-  <!-- 🌟 Main -->
+  
   <main>
-    <!-- 🔍 ส่วนค้นหา -->
     <div class="search-filter">
       <input type="text" id="searchInput" placeholder="ค้นหาชีท..." />
       <select id="facultySelect">
@@ -126,15 +124,15 @@
       <button id="searchBtn">ค้นหา</button>
     </div>
 
-    <!-- 🔄 โหลดชีท -->
+   
     <div id="sheetLoading" style="display: flex; justify-content: center; align-items: center; margin: 32px 0;">
       <div class="spinner"></div>
     </div>
 
-    <!-- 🧾 รายการชีท -->
+   
     <div class="sheet-list" id="sheetList"></div>
 
-    <!-- ✅ ตะกร้า Slide-in -->
+    
     <div id="cartPanel" class="cart-panel">
       <div class="cart-header">
         <span>🛒 ตะกร้าชีท</span>
@@ -150,13 +148,13 @@
       </div>
     </div>
 
-    <!-- 🛒 ปุ่มลอยเปิดตะกร้า (ต้องอยู่หลัง cartPanel) -->
+    
     <div id="cartToggle" class="cart-toggle">🛒</div>
 
     <script type="module" src="../js/viewsheet.js"></script>
   </main>
 
-  <!-- 💌 Hover แสดงอีเมล -->
+ 
   <script>
     const emailCard = document.getElementById("emailCard");
     const userEmail = document.getElementById("userEmail");
@@ -181,7 +179,7 @@
     };
   </script>
 
-  <!-- 🚪 Logout -->
+
   <script type="module">
     import { getAuth, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
     const logoutBtn = document.getElementById("logoutBtn");

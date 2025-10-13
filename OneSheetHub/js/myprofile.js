@@ -35,7 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userRef = doc(db, 'users', user.uid);
     let userSnap = await getDoc(userRef);
 
-    // ถ้ายังไม่มีข้อมูล → สร้างใหม่อัตโนมัติ
+    
     if (!userSnap.exists()) {
       await setDoc(userRef, {
         email: user.email,
@@ -48,7 +48,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const data = userSnap.data();
 
-    // แสดงข้อมูล
+    
     profileImg.src = data.photoURL || '../pic/placeholder.png';
     profileName.textContent = data.displayName || user.displayName || '-';
     profileEmail.textContent = data.email || user.email;

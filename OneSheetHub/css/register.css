@@ -43,7 +43,7 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  /* background-color: transparent; */
+  
 }
 .register-container {
   background: #e1bee7;
