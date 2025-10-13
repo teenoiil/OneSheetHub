@@ -29,7 +29,7 @@ body {
   animation: fadeInUp 1.2s cubic-bezier(.42,0,.58,1) 0.2s forwards;
 }
 
-/* 3 คอลัมน์ grid */
+
 .sheet-list {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -188,10 +188,10 @@ main {
   color: #fff;
 }
 
-/* ✅ เพิ่มส่วนตะกร้าขวามือ */
+
 .cart-toggle {
   position: fixed;
-  bottom: 80px;        /* ⬆️ เดิม 24px → ยกขึ้นสูงกว่าเดิม (ไม่บังปุ่มชำระ) */
+  bottom: 80px;        
   right: 24px;
   width: 60px;
   height: 60px;
@@ -267,7 +267,7 @@ main {
   margin-top: auto;
   border-top: 1px solid #ddd;
   padding-top: 12px;
-  padding-bottom: 24px;   /* ⬆️ เดิม 16px → เพิ่มพื้นที่ให้ปุ่มชำระลอยขึ้น */
+  padding-bottom: 24px;   
   background: #faf8ff;
   position: sticky;
   bottom: 0;              
@@ -288,7 +288,7 @@ main {
   color: #fff;
   border: none;
   border-radius: 8px;
-  padding: 12px;           /* ปรับให้กดง่ายขึ้น */
+  padding: 12px;           
   cursor: pointer;
   font-size: 15px;
   transition: background 0.2s;
@@ -296,7 +296,7 @@ main {
 .checkout-btn:hover {
   background: #4a0072;
 }
-/* ✅ ซ่อนปุ่มตะกร้าเมื่อแทบตะกร้าเปิดอยู่ */
+
 .cart-panel.open ~ .cart-toggle {
   opacity: 0;
   pointer-events: none;
@@ -304,7 +304,7 @@ main {
   transition: opacity 0.3s, transform 0.3s;
 }
 
-/* ✅ ให้ปุ่มค่อยๆ โผล่กลับมาหลังปิดแทบ */
+
 .cart-toggle {
   opacity: 1;
   transition: opacity 0.3s, transform 0.3s;

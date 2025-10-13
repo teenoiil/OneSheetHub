@@ -1,4 +1,3 @@
-// functions/index.js
 import { onRequest } from 'firebase-functions/v2/https';
 import { defineSecret } from 'firebase-functions/params';
 import { initializeApp } from 'firebase-admin/app';
@@ -8,7 +7,7 @@ import { getAuth } from 'firebase-admin/auth';
 import { genCode, sha256 } from './lib/otp.js';
 import { sendCodeMail } from './lib/mailer.js';
 
-/* ====== CONFIG ====== */
+
 const BUCKET_NAME = 'project-sharesheet2.firebasestorage.app';
 initializeApp({ storageBucket: BUCKET_NAME });
 
@@ -29,7 +28,7 @@ function setCors(res) {
   res.set('Access-Control-Max-Age', '3600');
 }
 
-/* ---------- rotate (ออก OTP ครั้งเดียว) ---------- */
+
 export const rotate = onRequest({ secrets: [ADMIN_KEY, MAIL_USER, MAIL_PASS] }, async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -69,7 +68,7 @@ export const rotate = onRequest({ secrets: [ADMIN_KEY, MAIL_USER, MAIL_PASS] }, 
   }
 });
 
-/* ---------- verify (ตรวจ OTP แล้วให้สิทธิ์) ---------- */
+
 export const verify = onRequest({ secrets: [MAIL_USER] }, async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -115,7 +114,7 @@ export const verify = onRequest({ secrets: [MAIL_USER] }, async (req, res) => {
       });
     });
 
-    // ให้ ok กลับไปอย่างเดียว (ฝั่ง UI จะ redirect ไป viewer.html)
+    
     return res.json({ ok: true });
   } catch (e) {
     console.error('verify error:', e);
@@ -124,7 +123,7 @@ export const verify = onRequest({ secrets: [MAIL_USER] }, async (req, res) => {
   }
 });
 
-/* ---------- geturl (ยังคงไว้เผื่อใช้ ที่ต้องการ signed URL) ---------- */
+
 export const geturl = onRequest({}, async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
@@ -162,14 +161,14 @@ export const geturl = onRequest({}, async (req, res) => {
   }
 });
 
-/* ---------- streamFile (ใช้ใน viewer.html) ---------- */
+
 export const streamFile = onRequest({ maxInstances: 10 }, async (req, res) => {
   setCors(res);
   if (req.method === 'OPTIONS') return res.status(204).end();
   if (req.method !== 'GET') return res.status(405).send('Method Not Allowed');
 
   try {
-    // token
+    
     const authHeader = req.headers.authorization || '';
     const [, token] = authHeader.split(' ');
     if (!token) return res.status(401).send('Missing token');
@@ -177,22 +176,22 @@ export const streamFile = onRequest({ maxInstances: 10 }, async (req, res) => {
     const decoded = await getAuth().verifyIdToken(token);
     const uid = decoded.uid;
 
-    // fileId
+    
     const fileId = (req.query.fileId || '').toString().trim();
     if (!fileId) return res.status(400).send('Missing fileId');
 
-    // ตรวจสิทธิ์
+    
     const entitlementRef = db.collection('entitlements').doc(`${uid}__${fileId}`);
     const entSnap = await entitlementRef.get();
     if (!entSnap.exists) return res.status(403).send('คุณไม่มีสิทธิ์ดูไฟล์นี้');
 
-    // หา path
+    
     const sheetSnap = await db.collection('sheets').doc(fileId).get();
     if (!sheetSnap.exists) return res.status(404).send('ไม่พบไฟล์');
     const { storagePath } = sheetSnap.data() || {};
     if (!storagePath) return res.status(500).send('missing storagePath');
 
-    // สตรีม PDF
+    
     const file = bucket.file(storagePath);
     const [exists] = await file.exists();
     if (!exists) return res.status(404).send('ไฟล์ไม่อยู่ในบักเก็ต');

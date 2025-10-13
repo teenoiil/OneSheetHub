@@ -119,7 +119,7 @@ body {
 main {
 	min-height: calc(100vh - 60px);
 	padding: 32px 0;
-	/* background-color: transparent; */
+	
 }
 .search-filter {
 	display: flex;

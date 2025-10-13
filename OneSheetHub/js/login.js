@@ -13,10 +13,10 @@ loginForm.addEventListener('submit', async (e) => {
   const emailOrUser = document.getElementById('loginEmail').value;
   const password = document.getElementById('loginPassword').value;
 
-  // ใช้ email ในการเข้าสู่ระบบ
+  
   try {
     await signInWithEmailAndPassword(auth, emailOrUser, password);
-    window.location.assign('/html/home.html'); // เปลี่ยนเส้นทางไปหน้า home หลัง login
+    window.location.assign('/html/home.html'); 
   } catch (error) {
     loginError.textContent = 'อีเมลหรือรหัสผ่านไม่ถูกต้อง';
   }

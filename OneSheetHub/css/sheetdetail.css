@@ -78,7 +78,7 @@ body {
 main {
   min-height: calc(100vh - 60px);
   padding: 32px 0;
-  /* background-color: transparent; */
+  
 }
 .sheet-detail-container {
   background: #d1c4e9;

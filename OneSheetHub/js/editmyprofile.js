@@ -61,20 +61,20 @@ document.addEventListener('DOMContentLoaded', () => {
     profileNameInput.value = data.displayName || '';
   });
 
-  // 📷 เมื่อเลือกภาพใหม่
+  
   profileImgInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
       newImageFile = file;
       const reader = new FileReader();
       reader.onload = (evt) => {
-        profileImg.src = evt.target.result; // แสดง preview เท่านั้น
+        profileImg.src = evt.target.result; 
       };
       reader.readAsDataURL(file);
     }
   });
 
-  // 💾 ปุ่มบันทึก
+  
   saveProfileBtn.addEventListener('click', async () => {
     const user = auth.currentUser;
     if (!user || !userRef) return;
@@ -83,20 +83,20 @@ document.addEventListener('DOMContentLoaded', () => {
     let photoURL = profileImg.src;
 
     try {
-      // ✅ ถ้ามีไฟล์ใหม่ → อัปโหลดไป Storage ก่อน
+      
       if (newImageFile) {
         const imgRef = ref(storage, `profiles/${user.uid}/${newImageFile.name}`);
         await uploadBytes(imgRef, newImageFile);
         photoURL = await getDownloadURL(imgRef);
       }
 
-      // ✅ อัปเดต Firestore
+      
       await updateDoc(userRef, {
         displayName: newName,
         photoURL: photoURL
       });
 
-      // ✅ อัปเดต Firebase Auth
+      
       await updateProfile(user, {
         displayName: newName,
         photoURL: photoURL

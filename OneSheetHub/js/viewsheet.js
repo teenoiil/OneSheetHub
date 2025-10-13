@@ -1,29 +1,28 @@
-// viewsheet.js — โหลดรายการชีท + ระบบตะกร้า (กันซื้อซ้ำ)
 import firebaseConfig from './firebaseConfig.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
 import { getFirestore, collection, getDocs, addDoc, query, where } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
 
-/* -------------------- INIT -------------------- */
+
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-/* -------------------- DOM --------------------- */
+
 const userEmailSpan = document.getElementById('userEmail');
 const sheetList = document.getElementById('sheetList');
 const sheetLoading = document.getElementById('sheetLoading');
 const searchBtn = document.getElementById('searchBtn');
 const $ = (id) => document.getElementById(id);
 
-/* ----------------- AUTH GUARD ----------------- */
-let purchasedSheetIds = []; // ✅ เก็บ ID ชีทที่ผู้ใช้ซื้อแล้ว
+
+let purchasedSheetIds = []; 
 
 onAuthStateChanged(auth, async (user) => {
   if (!user) return window.location.href = 'login.html';
   userEmailSpan.textContent = user.email;
 
-  // ✅ โหลดสิทธิ์ที่ผู้ใช้เคยซื้อไว้
+  
   const entQ = query(collection(db, 'entitlements'), where('userId', '==', user.uid));
   const entSnap = await getDocs(entQ);
   purchasedSheetIds = entSnap.docs.map(d => d.data().fileId);
@@ -31,7 +30,7 @@ onAuthStateChanged(auth, async (user) => {
   loadSheets();
 });
 
-/* ----------------- HELPERS -------------------- */
+
 function showLoading(show) {
   if (sheetLoading) sheetLoading.style.display = show ? 'flex' : 'none';
 }
@@ -40,7 +39,7 @@ function emptyState(msg) {
   sheetList.innerHTML = `<div style="width:100%;text-align:center;color:#777;padding:24px 0;">${msg}</div>`;
 }
 
-/* ----------------- LOAD SHEETS ---------------- */
+
 async function loadSheets() {
   if (!sheetList) return;
   showLoading(true);
@@ -74,7 +73,7 @@ async function loadSheets() {
 
       shown++;
       const fileId = docSnap.id;
-      const alreadyBought = purchasedSheetIds.includes(fileId); // ✅ ตรวจว่าซื้อแล้วหรือยัง
+      const alreadyBought = purchasedSheetIds.includes(fileId); 
 
       const card = document.createElement('div');
       card.className = 'sheet-card';
@@ -108,7 +107,7 @@ async function loadSheets() {
 
     if (shown === 0) emptyState('ไม่พบชีทที่ตรงกับเงื่อนไข');
 
-    // ปุ่ม “เพิ่มเติม”
+    
     document.querySelectorAll('.detail-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         const id = btn.dataset.id;
@@ -124,13 +123,11 @@ async function loadSheets() {
   }
 }
 
-/* ----------------- SEARCH UX ----------------- */
+
 if (searchBtn) searchBtn.addEventListener('click', loadSheets);
 $('searchInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') loadSheets(); });
 
-/* =====================================================
-   🛒 ระบบตะกร้า + ตรวจสอบการซื้อซ้ำ
-   ===================================================== */
+
 const cartToggle = document.getElementById('cartToggle');
 const cartPanel = document.getElementById('cartPanel');
 const closeCart = document.getElementById('closeCart');
@@ -186,13 +183,13 @@ document.addEventListener('click', (e) => {
   const price = btn.dataset.price || '0';
   const img = btn.dataset.img;
 
-  // ✅ ตรวจสอบว่าผู้ใช้มีชีทนี้อยู่แล้วหรือไม่
+  
   if (purchasedSheetIds.includes(id)) {
     alert(`📘 คุณมีชีท "${name}" อยู่แล้ว`);
     return;
   }
 
-  // ✅ ตรวจว่าซ้ำในตะกร้าไหม
+  
   if (cart.some(item => item.id === id)) {
     alert('ชีทนี้มีอยู่ในตะกร้าแล้ว');
     openCart();
@@ -205,7 +202,7 @@ document.addEventListener('click', (e) => {
   alert('✅ เพิ่มชีทลงในตะกร้าเรียบร้อยแล้ว');
 });
 
-/* ✅ ปุ่มชำระเงิน — บันทึกลง Firestore ก่อน redirect */
+
 checkoutBtn?.addEventListener('click', async () => {
   if (cart.length === 0) return alert('ยังไม่มีชีทในตะกร้า');
 
@@ -214,7 +211,7 @@ checkoutBtn?.addEventListener('click', async () => {
 
   try {
     for (const item of cart) {
-      // ✅ เช็กอีกชั้น กันซื้อซ้ำ
+      
       if (purchasedSheetIds.includes(item.id)) continue;
 
       await addDoc(collection(db, 'entitlements'), {

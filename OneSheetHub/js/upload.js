@@ -1,4 +1,3 @@
-// upload.js — อัปโหลดชีท + หน้าปก + บันทึก Firestore
 import firebaseConfig from './firebaseConfig.js';
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
 import { 
@@ -16,7 +15,7 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 const storage = getStorage(app);
 
-// ✅ ตรวจสอบสถานะการเข้าสู่ระบบ
+
 onAuthStateChanged(auth, (user) => {
   if (!user) {
     alert("กรุณาเข้าสู่ระบบก่อนอัปโหลดชีท");
@@ -32,7 +31,7 @@ const coverFileInput = document.getElementById("coverFile");
 const sheetFileInput = document.getElementById("sheetFile");
 const uploadMsg = document.getElementById("uploadMsg");
 
-// ✅ แสดงภาพ preview หน้าปก
+
 coverFileInput.addEventListener("change", (e) => {
   const file = e.target.files[0];
   if (file) {
@@ -52,7 +51,7 @@ form.addEventListener("submit", async (e) => {
     return;
   }
 
-  // ✅ เก็บค่าจากฟอร์ม
+  
   const year = document.getElementById("year").value;
   const semester = document.getElementById("semester").value;
   const faculty = document.getElementById("faculty").value;
@@ -74,8 +73,8 @@ form.addEventListener("submit", async (e) => {
   uploadMsg.textContent = "⏳ กำลังอัปโหลด...";
 
   try {
-    // ✅ อัปโหลดไฟล์ cover
-    let coverUrl = ""; // ← ใช้ชื่อเดียวกับ viewsheet.js
+    
+    let coverUrl = ""; 
     if (coverFile) {
       const coverPath = `covers/${user.uid}_${Date.now()}_${coverFile.name}`;
       const coverRef = ref(storage, coverPath);
@@ -83,13 +82,13 @@ form.addEventListener("submit", async (e) => {
       coverUrl = await getDownloadURL(coverRef);
     }
 
-    // ✅ อัปโหลดชีท PDF
+    
     const sheetPath = `sheets/${user.uid}_${Date.now()}_${sheetFile.name}`;
     const sheetRef = ref(storage, sheetPath);
     await uploadBytes(sheetRef, sheetFile);
     const sheetURL = await getDownloadURL(sheetRef);
 
-    // ✅ บันทึกข้อมูลลง Firestore
+    
     await addDoc(collection(db, "sheets"), {
       sheetName,
       subjectCode,
@@ -101,7 +100,7 @@ form.addEventListener("submit", async (e) => {
       faculty,
       major,
       ownerEmail: user.email,
-      coverUrl,     // ✅ เปลี่ยนชื่อให้ตรงกับ viewsheet
+      coverUrl,     
       sheetURL,
       storagePath: sheetPath,
       createdAt: new Date().toISOString()
