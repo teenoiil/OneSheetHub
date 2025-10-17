@@ -57,7 +57,6 @@ onAuthStateChanged(auth, async (user) => {
 
     const response = await fetch(streamUrl, { headers: { Authorization: `Bearer ${token}` } });
     if (!response.ok) throw new Error(`ไม่สามารถโหลดไฟล์ (HTTP ${response.status})`);
-
     const pdfData = await response.arrayBuffer();
 
     messageBox.style.display = "none";
@@ -95,8 +94,8 @@ onAuthStateChanged(auth, async (user) => {
 
 const forbiddenKeys = ['s','p','c','x','a','u','i'];
 document.addEventListener('keydown', e => {
-  if (e.ctrlKey && forbiddenKeys.includes(e.key.toLowerCase())) { e.preventDefault(); alert("🚫 คำสั่งถูกป้องกัน"); }
-  if (e.key === 'F12') { e.preventDefault(); alert("🚫 เปิด DevTools ไม่ได้"); }
+  if (e.ctrlKey && forbiddenKeys.includes(e.key.toLowerCase())) { e.preventDefault(); alert(" คำสั่งถูกป้องกัน"); }
+  if (e.key === 'F12') { e.preventDefault(); alert(" เปิด DevTools ไม่ได้"); }
 });
 document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('copy', e => e.preventDefault());
